@@ -3,6 +3,14 @@
 **epowrite** is a clean and expressive full-stack blog platform where users can create, browse, and manage blog posts. It’s built using the MERN stack with modern tools like Formik, Yup, React Context, Multer, and Toastify.
 
 ---
+## 🧰 Installation
+
+
+- **cd epowrite**
+- **Backend:npm install mongoose dotenv**  
+- **frontend:npm install tailwindcss @tailwindcss/vite**  
+
+---
 
 ## 🚀 Tech Stack
 
