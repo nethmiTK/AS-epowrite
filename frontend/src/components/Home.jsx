@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import HamburgerMenu from '../components/HamburgerMenu'; // adjust path accordingly
+
 
 const HomePage = () => {
   const [posts, setPosts] = useState([]);
@@ -68,6 +70,14 @@ const HomePage = () => {
 
   return (
     <div className="container mx-auto p-6">
+
+    {/* Top-right Hamburger Menu */}
+    <div className="flex justify-end mb-4">
+      <HamburgerMenu />
+    </div>
+
+    
+    <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">{editMode ? "Edit Post" : "Create a New Post"}</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4 mb-8">
@@ -134,6 +144,7 @@ const HomePage = () => {
           </ul>
         )}
       </div>
+    </div>
     </div>
   );
 };
