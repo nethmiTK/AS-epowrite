@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Lottie from 'lottie-react';
 import userAnimation from '../assets/user.json';
+import HamburgerMenu from '../components/HamburgerMenu'; // Import HamburgerMenu
 
 const Dashboard = () => {
   const [profile, setProfile] = useState(null);
@@ -15,6 +16,7 @@ const Dashboard = () => {
     pp: null,
   });
   const [notification, setNotification] = useState('');
+  const [sidebarVisible, setSidebarVisible] = useState(false); // State to toggle sidebar
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -69,27 +71,27 @@ const Dashboard = () => {
     }
   };
 
+  const toggleSidebar = () => {
+    setSidebarVisible(!sidebarVisible);
+  };
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 flex items-center justify-center p-6 overflow-hidden">
 
-      {/* Rain balls floating */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        {[...Array(25)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-5 h-5 bg-purple-400 rounded-full opacity-10"
-            style={{ left: `${Math.random() * 100}%`, bottom: `-${Math.random() * 100}px` }}
-            animate={{ y: ['0%', '-110%'] }}
-            transition={{ duration: 6 + Math.random() * 5, repeat: Infinity, delay: Math.random() * 3, ease: 'linear' }}
-          />
-        ))}
-      </div>
+      {/* Sidebar */}
+      {sidebarVisible && (
+        <div className="sidebar bg-gray-800 text-white w-64 p-4 fixed top-0 left-0 h-full">
+          <h2 className="text-xl font-bold mb-6">Dashboard</h2>
+          <button className="w-full mb-4 p-2 bg-purple-600 hover:bg-purple-700 rounded">Home</button>
+          <button className="w-full mb-4 p-2 bg-purple-600 hover:bg-purple-700 rounded">Create Post</button>
+          <button className="w-full mb-4 p-2 bg-purple-600 hover:bg-purple-700 rounded">View Posts</button>
+        </div>
+      )}
 
-      {/* Lottie Animation */}
-      <div className="absolute top-8 left-8 w-32 z-10">
-        <Lottie animationData={userAnimation} loop={true} />
-      </div>
+      {/* Hamburger Menu Button */}
+      <HamburgerMenu toggleSidebar={toggleSidebar} />
 
+      {/* Main Content */}
       <div className="bg-white/10 backdrop-blur-lg p-8 rounded-3xl shadow-2xl w-full max-w-2xl z-10 text-white flex flex-col items-center">
         <h1 className="text-4xl font-bold mb-6">👤 User Dashboard</h1>
         {notification && (
