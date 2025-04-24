@@ -1,15 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FaEnvelope, FaLock } from 'react-icons/fa';  // Icons
-import { motion } from 'framer-motion';  // Optional: Smooth animations
+import { FaEnvelope, FaLock } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/');
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -17,17 +23,18 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
     try {
       const { data } = await axios.post('http://localhost:3001/api/auth/login', formData);
-      alert(data.message);
       localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       navigate('/home');
     } catch (err) {
-      if (err.response) {
-        alert(err.response.data.message || 'Error logging in');
-      } else {
-        alert('Error logging in');
-      }
+      console.error('Login error:', err);
+      setError(err.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,6 +51,12 @@ const Login = () => {
         </h2>
         <p className="text-center text-sm text-purple-200">Sign in to continue</p>
 
+        {error && (
+          <div className="text-red-400 text-sm text-center border border-red-500 rounded-lg p-2 bg-red-500/10">
+            {error}
+          </div>
+        )}
+
         <div className="relative">
           <label className="block text-sm font-medium text-purple-200 mb-1">Email</label>
           <div className="flex items-center bg-white/20 border border-white/30 rounded-xl p-3">
@@ -53,6 +66,7 @@ const Login = () => {
               name="email"
               placeholder="Email"
               onChange={handleChange}
+              value={formData.email}
               required
               className="bg-transparent w-full text-white placeholder-purple-300 focus:outline-none"
             />
@@ -68,6 +82,7 @@ const Login = () => {
               name="password"
               placeholder="Password"
               onChange={handleChange}
+              value={formData.password}
               required
               className="bg-transparent w-full text-white placeholder-purple-300 focus:outline-none"
             />
@@ -76,9 +91,14 @@ const Login = () => {
 
         <button
           type="submit"
-          className="w-full bg-purple-600 text-white py-3 rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300 shadow-md"
+          disabled={loading}
+          className={`w-full py-3 rounded-xl text-white shadow-md transition duration-300 ${
+            loading
+              ? 'bg-purple-400 cursor-not-allowed'
+              : 'bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500'
+          }`}
         >
-          Sign In
+          {loading ? 'Signing in...' : 'Sign In'}
         </button>
 
         <p className="text-center text-sm text-purple-200">
