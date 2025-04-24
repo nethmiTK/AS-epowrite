@@ -1,34 +1,37 @@
-import React, { useState } from 'react';
+import React from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FaUser, FaUserAlt, FaEnvelope, FaLock } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { Formik, Field, Form, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Import styles
+
+// Yup validation schema
+const validationSchema = Yup.object({
+  fullName: Yup.string().required('Full Name is required'),
+  username: Yup.string().required('Username is required'),
+  email: Yup.string().email('Invalid email format').required('Email is required'),
+  password: Yup.string()
+    .min(6, 'Password must be at least 6 characters')
+    .required('Password is required'),
+});
 
 const Register = () => {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    username: '',
-    email: '',
-    password: '',
-  });
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log('Form data:', formData);
+  const handleSubmit = async (values) => {
+    console.log('Form data:', values);
     try {
-      const { data } = await axios.post('http://localhost:3001/api/auth/register', formData);
-      alert(data.message);
+      const { data } = await axios.post('http://localhost:3001/api/auth/register', values);
+      toast.success(data.message); // Success notification
       navigate('/');
     } catch (err) {
       if (err.response) {
-        alert(err.response.data.message || 'Error registering user');
+        toast.error(err.response.data.message || 'Error registering user'); // Error notification
       } else {
-        alert('Error registering user');
+        toast.error('Error registering user');
       }
     }
   };
@@ -42,8 +45,7 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 px-4">
-      <motion.form
-        onSubmit={handleSubmit}
+      <motion.div
         className="backdrop-blur-lg bg-white/10 border border-white/20 p-10 rounded-3xl shadow-2xl w-full max-w-md space-y-6 transform hover:scale-105 transition duration-500"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -53,37 +55,49 @@ const Register = () => {
         </h2>
         <p className="text-center text-sm text-purple-200">Join us and get started!</p>
 
-        {['fullName', 'username', 'email', 'password'].map((field, idx) => (
-          <div key={idx}>
-            <label htmlFor={field} className="block text-sm font-medium text-purple-200 mb-1">
-              {field === 'fullName' ? 'Full Name' : field.charAt(0).toUpperCase() + field.slice(1)}
-            </label>
-            <div className="flex items-center bg-white/20 border border-white/30 rounded-xl p-3">
-              {fieldIcons[field]}
-              <input
-                type={
-                  field === 'email'
-                    ? 'email'
-                    : field === 'password'
-                    ? 'password'
-                    : 'text'
-                }
-                name={field}
-                placeholder={field === 'fullName' ? 'Full Name' : field.charAt(0).toUpperCase() + field.slice(1)}
-                onChange={handleChange}
-                required
-                className="bg-transparent w-full text-white placeholder-purple-300 focus:outline-none"
-              />
-            </div>
-          </div>
-        ))}
-
-        <button
-          type="submit"
-          className="w-full bg-purple-600 text-white py-3 rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300 shadow-md"
+        <Formik
+          initialValues={{
+            fullName: '',
+            username: '',
+            email: '',
+            password: '',
+          }}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
         >
-          Register
-        </button>
+          {({ setFieldValue }) => (
+            <Form className="space-y-6">
+              {['fullName', 'username', 'email', 'password'].map((field, idx) => (
+                <div key={idx}>
+                  <label htmlFor={field} className="block text-sm font-medium text-purple-200 mb-1">
+                    {field === 'fullName' ? 'Full Name' : field.charAt(0).toUpperCase() + field.slice(1)}
+                  </label>
+                  <div className="flex items-center bg-white/20 border border-white/30 rounded-xl p-3">
+                    {fieldIcons[field]}
+                    <Field
+                      type={field === 'email' ? 'email' : field === 'password' ? 'password' : 'text'}
+                      name={field}
+                      placeholder={field === 'fullName' ? 'Full Name' : field.charAt(0).toUpperCase() + field.slice(1)}
+                      className="bg-transparent w-full text-white placeholder-purple-300 focus:outline-none"
+                    />
+                  </div>
+                  <ErrorMessage
+                    name={field}
+                    component="div"
+                    className="text-red-500 text-sm mt-1"
+                  />
+                </div>
+              ))}
+
+              <button
+                type="submit"
+                className="w-full bg-purple-600 text-white py-3 rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300 shadow-md"
+              >
+                Register
+              </button>
+            </Form>
+          )}
+        </Formik>
 
         <p className="text-center text-sm text-purple-200">
           Already have an account?{' '}
@@ -91,7 +105,10 @@ const Register = () => {
             Login here
           </a>
         </p>
-      </motion.form>
+      </motion.div>
+
+      {/* Toast Notifications Container */}
+      <ToastContainer />
     </div>
   );
 };
