@@ -2,38 +2,66 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const authRoutes = require('./routes/auth');        // Your login/register routes
+const userRoutes = require('./routes/userRoutes');  // Your profile routes
 require('dotenv').config();
-
-// Route Imports
-const authRoutes = require('./routes/auth');         // Authentication (login/register)
-const userRoutes = require('./routes/userRoutes');   // User profile
-const postRoutes = require('./routes/posts');        // Blog posts
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
-// Static files (optional if you're serving uploads)
-// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve uploaded images
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/posts', postRoutes);
 
 // MongoDB Connection
 mongoose
-  .connect('mongodb://localhost:27017/epowrite', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => console.log('✅ MongoDB connected to epowrite'))
+  .connect('mongodb://localhost:27017/user-mern-dashboard', { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('✅ MongoDB connected'))
   .catch((error) => console.error('❌ MongoDB connection failed:', error));
 
-// Start Server
+// Server Start
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
+
+
+
+// const express = require('express');
+// const mongoose = require('mongoose');
+// const cors = require('cors');
+// const path = require('path');
+// const authRoutes = require('./routes/auth');        // Your login/register routes
+// const userRoutes = require('./routes/userRoutes');  // Your profile routes
+// require('dotenv').config();
+
+// const app = express();
+// const PORT = process.env.PORT || 3001;
+
+// // Middleware
+// app.use(express.json());
+// app.use(cors());
+
+// // Serve uploaded images
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// // Routes
+// app.use('/api/auth', authRoutes);
+// app.use('/api/users', userRoutes);
+
+// // MongoDB Connection
+// mongoose
+//   .connect('mongodb://localhost:27017/user-mern-dashboard', { useNewUrlParser: true, useUnifiedTopology: true })
+//   .then(() => console.log('✅ MongoDB connected'))
+//   .catch((error) => console.error('❌ MongoDB connection failed:', error));
+
+// // Server Start
+// app.listen(PORT, () => {
+//   console.log(`🚀 Server running on port ${PORT}`);
+// });

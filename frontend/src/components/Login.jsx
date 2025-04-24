@@ -21,7 +21,7 @@ const Login = () => {
       const { data } = await axios.post('http://localhost:3001/api/auth/login', formData);
       alert(data.message);
       localStorage.setItem('token', data.token);
-      navigate('/dashboard');
+      navigate('/home');
     } catch (err) {
       if (err.response) {
         alert(err.response.data.message || 'Error logging in');
