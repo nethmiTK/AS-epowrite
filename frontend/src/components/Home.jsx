@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 import HamburgerMenu from '../components/HamburgerMenu'; // Adjust the path as needed
 
 const HomePage = () => {
@@ -10,7 +11,7 @@ const HomePage = () => {
   const [editMode, setEditMode] = useState(false);
   const [editPostId, setEditPostId] = useState(null);
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(""); // Search query state
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchPosts = async () => {
     try {
@@ -65,7 +66,6 @@ const HomePage = () => {
     setSidebarVisible(!sidebarVisible);
   };
 
-  // Filter posts based on the search query
   const filteredPosts = posts.filter((post) =>
     post.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -73,7 +73,6 @@ const HomePage = () => {
   return (
     <div className="flex">
       <div className="flex-1 p-6 ml-64">
-        {/* Hamburger Menu */}
         <HamburgerMenu toggleSidebar={toggleSidebar} />
 
         <div className="container mx-auto">
@@ -112,7 +111,6 @@ const HomePage = () => {
             </button>
           </form>
 
-          {/* Search Input */}
           <div className="mb-6">
             <input
               type="text"
@@ -123,7 +121,6 @@ const HomePage = () => {
             />
           </div>
 
-          {/* Display Filtered Posts */}
           <div>
             <h2 className="text-2xl font-semibold mb-4">All Posts</h2>
             {filteredPosts.length === 0 ? (
@@ -133,8 +130,22 @@ const HomePage = () => {
                 {filteredPosts.map((post) => (
                   <li key={post._id} className="border p-4 rounded">
                     <h3 className="text-xl font-bold">{post.title}</h3>
-                    <p className="text-sm text-gray-500">By {post.author} | {new Date(post.date).toLocaleDateString()}</p>
-                    <p>{post.description}</p>
+                    <p className="text-sm text-gray-500">
+                      By {post.author} | {new Date(post.date).toLocaleDateString()}
+                    </p>
+                    <p className="mt-2">
+                      {post.description.length > 100
+                        ? `${post.description.substring(0, 100)}... `
+                        : post.description}
+                      {post.description.length > 100 && (
+                        <Link
+                          to={`/posts/${post._id}`}
+                          className="text-blue-600 hover:underline ml-2"
+                        >
+                          Read More
+                        </Link>
+                      )}
+                    </p>
                     <div className="mt-4 flex space-x-4">
                       <button
                         onClick={() => handleEdit(post)}

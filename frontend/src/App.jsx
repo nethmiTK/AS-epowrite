@@ -6,6 +6,8 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import Home from "./components/Home";
+import PostDetails from "./components/PostDetails";
+
 import Header from "./components/Header";
 
 import "./index.css";
@@ -33,6 +35,7 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/posts/:id" element={<PostDetails />} />
           <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </div>
