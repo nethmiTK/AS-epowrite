@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import HamburgerMenu from '../components/HamburgerMenu'; // Adjust the path as needed
+import { FiEdit, FiTrash2, FiUser, FiMail } from "react-icons/fi";
+import { MdPostAdd } from "react-icons/md";
+import HamburgerMenu from '../components/HamburgerMenu';
 
 const HomePage = () => {
   const [posts, setPosts] = useState([]);
@@ -10,7 +12,6 @@ const HomePage = () => {
   const [author, setAuthor] = useState("");
   const [editMode, setEditMode] = useState(false);
   const [editPostId, setEditPostId] = useState(null);
-  const [sidebarVisible, setSidebarVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const fetchPosts = async () => {
@@ -62,23 +63,21 @@ const HomePage = () => {
     }
   };
 
-  const toggleSidebar = () => {
-    setSidebarVisible(!sidebarVisible);
-  };
-
   const filteredPosts = posts.filter((post) =>
     post.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="flex">
-      <div className="flex-1 p-6 ml-64">
-        <HamburgerMenu toggleSidebar={toggleSidebar} />
-
-        <div className="container mx-auto">
-          <h1 className="text-3xl font-bold mb-6">{editMode ? "Edit Post" : "Create a New Post"}</h1>
-
-          <form onSubmit={handleSubmit} className="space-y-4 mb-8">
+    <div className="flex min-h-screen bg-gray-100">
+      {/* Sidebar */}
+      <div className="w-64 bg-white p-6 shadow-md border-r">
+        <HamburgerMenu />
+        
+        <div>
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <MdPostAdd /> New Post
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-3">
             <input
               type="text"
               placeholder="Title"
@@ -92,7 +91,7 @@ const HomePage = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full p-2 border rounded"
-              rows="6"
+              rows="4"
               required
             />
             <input
@@ -107,64 +106,67 @@ const HomePage = () => {
               type="submit"
               className="w-full p-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              {editMode ? "Update Post" : "Create Post"}
+              {editMode ? "Update" : "Create"}
             </button>
           </form>
+        </div>
+      </div>
 
-          <div className="mb-6">
-            <input
-              type="text"
-              placeholder="Search by title"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-2 border rounded"
-            />
-          </div>
+      {/* Main Content */}
+      <div className="flex-1 p-6">
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="🔍 Search posts by title..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-2 border rounded shadow"
+          />
+        </div>
 
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">All Posts</h2>
-            {filteredPosts.length === 0 ? (
-              <p>No posts available</p>
-            ) : (
-              <ul className="space-y-4">
-                {filteredPosts.map((post) => (
-                  <li key={post._id} className="border p-4 rounded">
-                    <h3 className="text-xl font-bold">{post.title}</h3>
-                    <p className="text-sm text-gray-500">
-                      By {post.author} | {new Date(post.date).toLocaleDateString()}
-                    </p>
-                    <p className="mt-2">
-                      {post.description.length > 100
-                        ? `${post.description.substring(0, 100)}... `
-                        : post.description}
-                      {post.description.length > 100 && (
-                        <Link
-                          to={`/posts/${post._id}`}
-                          className="text-blue-600 hover:underline ml-2"
-                        >
-                          Read More
-                        </Link>
-                      )}
-                    </p>
-                    <div className="mt-4 flex space-x-4">
-                      <button
-                        onClick={() => handleEdit(post)}
-                        className="p-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">📝 All Posts</h2>
+          {filteredPosts.length === 0 ? (
+            <p className="text-gray-600">No posts available.</p>
+          ) : (
+            <ul className="space-y-4">
+              {filteredPosts.map((post) => (
+                <li key={post._id} className="bg-white p-4 rounded shadow border">
+                  <h3 className="text-xl font-bold">{post.title}</h3>
+                  <p className="text-sm text-gray-500">
+                    By {post.author} | {new Date(post.date).toLocaleDateString()}
+                  </p>
+                  <p className="mt-2 text-gray-700">
+                    {post.description.length > 100
+                      ? `${post.description.substring(0, 100)}...`
+                      : post.description}
+                    {post.description.length > 100 && (
+                      <Link
+                        to={`/posts/${post._id}`}
+                        className="text-blue-600 hover:underline ml-2"
                       >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(post._id)}
-                        className="p-2 bg-red-600 text-white rounded hover:bg-red-700"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                        Read More
+                      </Link>
+                    )}
+                  </p>
+                  <div className="mt-4 flex space-x-3">
+                    <button
+                      onClick={() => handleEdit(post)}
+                      className="flex items-center gap-1 p-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                    >
+                      <FiEdit /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(post._id)}
+                      className="flex items-center gap-1 p-2 bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                      <FiTrash2 /> Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>
