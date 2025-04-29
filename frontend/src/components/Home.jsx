@@ -1,19 +1,20 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { Link } from "react-router-dom";
-import { FiEdit, FiTrash2, FiUser, FiMail } from "react-icons/fi";
-import { MdPostAdd } from "react-icons/md";
-import HamburgerMenu from '../components/HamburgerMenu';  // Import HamburgerMenu
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Link } from 'react-router-dom';
+import { FiEdit, FiTrash2 } from 'react-icons/fi';
+import { MdPostAdd } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
+import HamburgerMenu from '../components/HamburgerMenu'; // Import HamburgerMenu
 
 const HomePage = () => {
   const [posts, setPosts] = useState([]);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [author, setAuthor] = useState("");
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [author, setAuthor] = useState('');
+  const [media, setMedia] = useState(null); // For storing media
   const [editMode, setEditMode] = useState(false);
   const [editPostId, setEditPostId] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [profile, setProfile] = useState(null);
   const navigate = useNavigate();
 
@@ -30,7 +31,7 @@ const HomePage = () => {
         const res = await axios.get('http://localhost:3001/api/users/profile', {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setProfile(res.data);  // Set the user's profile
+        setProfile(res.data);
       } catch (err) {
         console.error('Error loading profile in home page:', err);
       }
@@ -43,32 +44,48 @@ const HomePage = () => {
   // Fetch all posts
   const fetchPosts = async () => {
     try {
-      const res = await axios.get("http://localhost:3001/api/posts");
+      const res = await axios.get('http://localhost:3001/api/posts');
       setPosts(res.data);
     } catch (error) {
-      console.error("Error fetching posts:", error);
+      console.error('Error fetching posts:', error);
     }
   };
 
+  // Handle form submission with media file upload
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('author', author);
+    if (media) {
+      formData.append('media', media);
+    }
+
     try {
-      const newPost = { title, description, author };
       if (editMode) {
-        await axios.put(`http://localhost:3001/api/posts/${editPostId}`, newPost);
+        await axios.put(`http://localhost:3001/api/posts/${editPostId}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
         setEditMode(false);
       } else {
-        await axios.post("http://localhost:3001/api/posts", newPost);
+        await axios.post('http://localhost:3001/api/posts', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
       }
-      setTitle("");
-      setDescription("");
-      setAuthor("");
+
+      setTitle('');
+      setDescription('');
+      setAuthor('');
+      setMedia(null);
       fetchPosts();
     } catch (error) {
-      console.error("Error submitting post:", error);
+      console.error('Error submitting post:', error);
     }
   };
 
+  // Handle post editing
   const handleEdit = (post) => {
     setTitle(post.title);
     setDescription(post.description);
@@ -77,15 +94,17 @@ const HomePage = () => {
     setEditPostId(post._id);
   };
 
+  // Handle post deletion
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://localhost:3001/api/posts/${id}`);
       fetchPosts();
     } catch (error) {
-      console.error("Error deleting post:", error);
+      console.error('Error deleting post:', error);
     }
   };
 
+  // Filter posts based on search query
   const filteredPosts = posts.filter((post) =>
     post.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -94,9 +113,7 @@ const HomePage = () => {
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
       <div className="w-64 bg-white p-6 shadow-md border-r">
-        {/* Pass profile data to HamburgerMenu */}
-        <HamburgerMenu user={profile} /> {/* Pass the profile as user */}
-        
+        <HamburgerMenu user={profile} /> {/* Pass profile to HamburgerMenu */}
         <div>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <MdPostAdd /> New Post
@@ -126,11 +143,17 @@ const HomePage = () => {
               className="w-full p-2 border rounded"
               required
             />
+            <input
+              type="file"
+              name="media"
+              onChange={(e) => setMedia(e.target.files[0])}
+              className="w-full p-2 border rounded"
+            />
             <button
               type="submit"
               className="w-full p-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              {editMode ? "Update" : "Create"}
+              {editMode ? 'Update' : 'Create'}
             </button>
           </form>
         </div>
@@ -148,7 +171,6 @@ const HomePage = () => {
           />
         </div>
 
-        {/* User Greeting */}
         {profile && (
           <h2 className="text-xl font-semibold mb-4">Welcome, {profile.fullName}!</h2>
         )}
@@ -178,6 +200,15 @@ const HomePage = () => {
                       </Link>
                     )}
                   </p>
+                  {post.media && (
+                    <div className="mt-4">
+                      <img
+                        src={`http://localhost:3001/uploads/${post.media}`}
+                        alt="Post Media"
+                        className="w-full h-auto"
+                      />
+                    </div>
+                  )}
                   <div className="mt-4 flex space-x-3">
                     <button
                       onClick={() => handleEdit(post)}

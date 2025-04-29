@@ -16,6 +16,7 @@ app.use(cors());
 
 // Serve uploaded images
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+ 
 
 // Routes
 app.use('/api/auth', authRoutes);  // Auth routes
