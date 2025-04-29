@@ -8,6 +8,7 @@ const Dashboard = () => {
   const [description, setDescription] = useState('');
   const [author, setAuthor] = useState('');  // This will be set to logged-in user's name
   const [media, setMedia] = useState(null); // For storing media
+  const [preview, setPreview] = useState(null); // To store the preview of the selected image
   const [editMode, setEditMode] = useState(false);
   const [editPostId, setEditPostId] = useState(null);
   const [profile, setProfile] = useState(null); // Profile data for logged-in user
@@ -53,6 +54,9 @@ const Dashboard = () => {
       formData.append('media', media);
     }
 
+    // Include the profile picture URL with the post
+    formData.append('profilePic', profile.pp.startsWith('http') ? profile.pp : `http://localhost:3001${profile.pp}`);
+
     try {
       if (editMode) {
         await axios.put(`http://localhost:3001/api/posts/${editPostId}`, formData, {
@@ -69,6 +73,7 @@ const Dashboard = () => {
       setDescription('');
       setAuthor('');
       setMedia(null);
+      setPreview(null);  // Clear preview after submitting
 
       // Re-fetch posts after a successful submission
       fetchPosts();
@@ -80,11 +85,41 @@ const Dashboard = () => {
   // Filter posts to display only the ones authored by the logged-in user
   const userPosts = posts.filter(post => post.author === author);
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setMedia(file);
+
+    // Generate a preview URL for the selected file
+    if (file) {
+      const fileReader = new FileReader();
+      fileReader.onloadend = () => {
+        setPreview(fileReader.result); // Set the preview of the image
+      };
+      fileReader.readAsDataURL(file); // Convert file to data URL for preview
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center">
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+        
+        {/* Profile Info */}
+        {profile && (
+          <div className="flex items-center gap-6 mb-6">
+            <div className="flex items-center gap-3">
+              <img
+                src={profile.pp.startsWith('http') ? profile.pp : `http://localhost:3001${profile.pp}`}
+                alt="Profile"
+                className="w-14 h-14 rounded-full border-2 border-pink-500 object-cover hover:scale-110 hover:shadow-xl transition-all duration-300 ease-in-out"
+              />
+              <span className="text-lg font-medium text-gray-300">{profile.fullName}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Post Form */}
         <h2 className="text-2xl font-semibold text-center text-blue-700 mb-6 flex items-center justify-center gap-2">
-          <MdPostAdd /> Create New Post
+          <MdPostAdd /> {editMode ? 'Edit Post' : 'Create New Post'}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -104,15 +139,6 @@ const Dashboard = () => {
               rows="4"
               required
             />
-            <input
-              type="text"
-              placeholder="Author"
-              value={author}
-              onChange={(e) => setAuthor(e.target.value)}  // Allow changing if necessary
-              className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-              disabled  // Disable the field since the author is pre-filled with logged-in user's name
-            />
           </div>
           <div className="space-y-2">
             <label htmlFor="media" className="block text-sm font-medium text-gray-700">
@@ -122,12 +148,24 @@ const Dashboard = () => {
               <input
                 type="file"
                 id="media"
-                onChange={(e) => setMedia(e.target.files[0])}
+                onChange={handleImageChange}
                 className="w-full p-2 border border-gray-300 rounded-lg shadow-sm"
               />
               <FiImage className="text-xl text-gray-600" />
             </div>
           </div>
+
+          {/* Image Preview */}
+          {preview && (
+            <div className="mt-4">
+              <img 
+                src={preview} 
+                alt="Preview"
+                className="w-full h-auto rounded-lg border-2 border-gray-300 object-cover"
+              />
+            </div>
+          )}
+
           <button
             type="submit"
             className="w-full p-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition"
@@ -136,15 +174,23 @@ const Dashboard = () => {
           </button>
         </form>
 
+        {/* My Posts List */}
         <div className="mt-8">
           <h3 className="text-xl font-semibold text-center text-blue-700 mb-4">My Posts</h3>
           <div className="space-y-4">
             {userPosts.length > 0 ? (
               userPosts.map((post) => (
                 <div key={post._id} className="bg-white p-4 rounded-lg shadow-md">
+                  <div className="flex items-center gap-4 mb-4">
+                    <img
+                      src={post.profilePic}
+                      alt="Post Author"
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <span className="font-semibold text-gray-700">{post.author}</span>
+                  </div>
                   <h4 className="text-lg font-bold text-gray-800">{post.title}</h4>
                   <p className="text-gray-600">{post.description}</p>
-                  <p className="text-sm text-gray-500 mt-2">By: {post.author}</p>
                   {post.media && (
                     <div className="mt-4">
                       <img src={`http://localhost:3001${post.media}`} alt="Post Media" className="w-full h-auto rounded-lg" />

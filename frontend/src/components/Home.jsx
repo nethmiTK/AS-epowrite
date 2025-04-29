@@ -1,60 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
-import { FiEdit, FiTrash2 } from 'react-icons/fi';
-import { MdPostAdd } from 'react-icons/md';
-import { useNavigate } from 'react-router-dom';
-import HamburgerMenu from '../components/HamburgerMenu'; // Import HamburgerMenu
 
 const HomePage = () => {
   const [posts, setPosts] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [author, setAuthor] = useState('');
-  const [media, setMedia] = useState(null); // For storing media
-  const [editMode, setEditMode] = useState(false);
-  const [editPostId, setEditPostId] = useState(null);
+  const [media, setMedia] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [profile, setProfile] = useState(null);
-  const navigate = useNavigate();
 
-  // Fetch user's profile
+  // Fetch posts from the backend when component mounts
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
-    const fetchProfile = async () => {
+    const fetchPosts = async () => {
       try {
-        const res = await axios.get('http://localhost:3001/api/users/profile', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setProfile(res.data);
+        const res = await axios.get('http://localhost:3001/api/posts');
+        setPosts(res.data);
       } catch (err) {
-        console.error('Error loading profile in home page:', err);
+        console.error('Error fetching posts:', err);
       }
     };
 
-    fetchProfile();
     fetchPosts();
-  }, [navigate]);
+  }, []);
 
-  // Fetch all posts
-  const fetchPosts = async () => {
-    try {
-      const res = await axios.get('http://localhost:3001/api/posts');
-      setPosts(res.data);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-    }
-  };
-
-  // Handle form submission with media file upload
+  // Handle form submission to create a new post
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', description);
@@ -64,43 +35,16 @@ const HomePage = () => {
     }
 
     try {
-      if (editMode) {
-        await axios.put(`http://localhost:3001/api/posts/${editPostId}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        setEditMode(false);
-      } else {
-        await axios.post('http://localhost:3001/api/posts', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-      }
-
+      const res = await axios.post('http://localhost:3001/api/posts', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setPosts([res.data, ...posts]);
       setTitle('');
       setDescription('');
       setAuthor('');
       setMedia(null);
-      fetchPosts();
     } catch (error) {
       console.error('Error submitting post:', error);
-    }
-  };
-
-  // Handle post editing
-  const handleEdit = (post) => {
-    setTitle(post.title);
-    setDescription(post.description);
-    setAuthor(post.author);
-    setEditMode(true);
-    setEditPostId(post._id);
-  };
-
-  // Handle post deletion
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(`http://localhost:3001/api/posts/${id}`);
-      fetchPosts();
-    } catch (error) {
-      console.error('Error deleting post:', error);
     }
   };
 
@@ -110,124 +54,81 @@ const HomePage = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-64 bg-white p-6 shadow-md border-r">
-        <HamburgerMenu user={profile} /> {/* Pass profile to HamburgerMenu */}
-        <div>
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <MdPostAdd /> New Post
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <input
-              type="text"
-              placeholder="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-2 border rounded"
-              required
-            />
-            <textarea
-              placeholder="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-2 border rounded"
-              rows="4"
-              required
-            />
-            <input
-              type="text"
-              placeholder="Author"
-              value={author}
-              onChange={(e) => setAuthor(e.target.value)}
-              className="w-full p-2 border rounded"
-              required
-            />
-            <input
-              type="file"
-              name="media"
-              onChange={(e) => setMedia(e.target.files[0])}
-              className="w-full p-2 border rounded"
-            />
-            <button
-              type="submit"
-              className="w-full p-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              {editMode ? 'Update' : 'Create'}
-            </button>
-          </form>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 p-6">
-        <div className="mb-6">
+    <div className="flex flex-col items-center p-4 bg-gray-100">
+      <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-semibold mb-4 text-pink-700">Create a New Post</h2>
+        <form onSubmit={handleSubmit}>
           <input
             type="text"
-            placeholder="🔍 Search posts by title..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full p-2 border rounded shadow"
+            placeholder="Post Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-pink-500"
+            required
           />
-        </div>
+          <textarea
+            placeholder="Post Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-pink-500"
+            rows="4"
+            required
+          />
+          <input
+            type="text"
+            placeholder="Author"
+            value={author}
+            onChange={(e) => setAuthor(e.target.value)}
+            className="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-pink-500"
+            required
+          />
+          <input
+            type="file"
+            name="media"
+            onChange={(e) => setMedia(e.target.files[0])}
+            className="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-pink-500"
+          />
+          <button
+            type="submit"
+            className="w-full p-3 bg-pink-500 hover:bg-pink-400 text-white rounded-lg"
+          >
+            Create Post
+          </button>
+        </form>
+      </div>
 
-        {profile && (
-          <h2 className="text-xl font-semibold mb-4">Welcome, {profile.fullName}!</h2>
-        )}
+      <div className="w-full max-w-2xl mt-8">
+        <h2 className="text-3xl font-semibold mb-6 text-gray-800">All Posts</h2>
+        <input
+          type="text"
+          placeholder="Search posts by title..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-pink-500"
+        />
 
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">📝 All Posts</h2>
-          {filteredPosts.length === 0 ? (
-            <p className="text-gray-600">No posts available.</p>
-          ) : (
-            <ul className="space-y-4">
-              {filteredPosts.map((post) => (
-                <li key={post._id} className="bg-white p-4 rounded shadow border">
-                  <h3 className="text-xl font-bold">{post.title}</h3>
-                  <p className="text-sm text-gray-500">
-                    By {post.author} | {new Date(post.date).toLocaleDateString()}
-                  </p>
-                  <p className="mt-2 text-gray-700">
-                    {post.description.length > 100
-                      ? `${post.description.substring(0, 100)}...`
-                      : post.description}
-                    {post.description.length > 100 && (
-                      <Link
-                        to={`/posts/${post._id}`}
-                        className="text-blue-600 hover:underline ml-2"
-                      >
-                        Read More
-                      </Link>
-                    )}
-                  </p>
-                  {post.media && (
-                    <div className="mt-4">
-                      <img
-                        src={`http://localhost:3001/uploads/${post.media}`}
-                        alt="Post Media"
-                        className="w-full h-auto"
-                      />
-                    </div>
-                  )}
-                  <div className="mt-4 flex space-x-3">
-                    <button
-                      onClick={() => handleEdit(post)}
-                      className="flex items-center gap-1 p-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                    >
-                      <FiEdit /> Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(post._id)}
-                      className="flex items-center gap-1 p-2 bg-red-600 text-white rounded hover:bg-red-700"
-                    >
-                      <FiTrash2 /> Delete
-                    </button>
+        {filteredPosts.length === 0 ? (
+          <p className="text-gray-600">No posts available.</p>
+        ) : (
+          <ul>
+            {filteredPosts.map((post) => (
+              <li key={post._id} className="bg-white p-6 rounded-lg shadow-lg mb-4">
+                <h3 className="text-2xl font-semibold text-gray-900">{post.title}</h3>
+                <p className="text-sm text-gray-500">By {post.author} | {new Date(post.date).toLocaleDateString()}</p>
+                <p className="mt-2 text-gray-700">{post.description}</p>
+                {post.media && (
+                  <div className="mt-4">
+                    <img
+                      src={`http://localhost:3001${post.media}`} // Correct image URL
+                      alt="Post Media"
+                      className="w-full h-auto rounded-lg shadow-md"
+                    />
                   </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
