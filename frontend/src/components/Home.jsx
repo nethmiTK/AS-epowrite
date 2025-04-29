@@ -3,7 +3,8 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { FiEdit, FiTrash2, FiUser, FiMail } from "react-icons/fi";
 import { MdPostAdd } from "react-icons/md";
-import HamburgerMenu from '../components/HamburgerMenu';
+import HamburgerMenu from '../components/HamburgerMenu';  // Import HamburgerMenu
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
   const [posts, setPosts] = useState([]);
@@ -13,7 +14,33 @@ const HomePage = () => {
   const [editMode, setEditMode] = useState(false);
   const [editPostId, setEditPostId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [profile, setProfile] = useState(null);
+  const navigate = useNavigate();
 
+  // Fetch user's profile
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const res = await axios.get('http://localhost:3001/api/users/profile', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setProfile(res.data);  // Set the user's profile
+      } catch (err) {
+        console.error('Error loading profile in home page:', err);
+      }
+    };
+
+    fetchProfile();
+    fetchPosts();
+  }, [navigate]);
+
+  // Fetch all posts
   const fetchPosts = async () => {
     try {
       const res = await axios.get("http://localhost:3001/api/posts");
@@ -22,10 +49,6 @@ const HomePage = () => {
       console.error("Error fetching posts:", error);
     }
   };
-
-  useEffect(() => {
-    fetchPosts();
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -71,7 +94,8 @@ const HomePage = () => {
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
       <div className="w-64 bg-white p-6 shadow-md border-r">
-        <HamburgerMenu />
+        {/* Pass profile data to HamburgerMenu */}
+        <HamburgerMenu user={profile} /> {/* Pass the profile as user */}
         
         <div>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
@@ -123,6 +147,11 @@ const HomePage = () => {
             className="w-full p-2 border rounded shadow"
           />
         </div>
+
+        {/* User Greeting */}
+        {profile && (
+          <h2 className="text-xl font-semibold mb-4">Welcome, {profile.fullName}!</h2>
+        )}
 
         <div>
           <h2 className="text-2xl font-semibold mb-4">📝 All Posts</h2>

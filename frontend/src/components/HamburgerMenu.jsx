@@ -1,3 +1,4 @@
+ // HamburgerMenu.js
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiMenu, FiX, FiHome, FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
@@ -47,7 +48,7 @@ const HamburgerMenu = ({ user }) => {
         }`}
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">👋 {user?.fullName || 'Guest'}</h2>
+          <h2 className="text-xl font-semibold">👋 {user?.fullName }</h2>
           <button
             onClick={() => setIsOpen(false)}
             className="text-2xl md:hidden text-gray-400 hover:text-white"
