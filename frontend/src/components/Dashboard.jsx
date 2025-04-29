@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MdPostAdd } from 'react-icons/md';
 import { FiImage } from 'react-icons/fi';
 import axios from 'axios';
@@ -6,14 +6,34 @@ import axios from 'axios';
 const Dashboard = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [author, setAuthor] = useState('');
+  const [author, setAuthor] = useState('');  // This will be set to logged-in user's name
   const [media, setMedia] = useState(null); // For storing media
   const [editMode, setEditMode] = useState(false);
   const [editPostId, setEditPostId] = useState(null);
+  const [profile, setProfile] = useState(null); // Profile data for logged-in user
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const fetchProfile = async () => {
+      try {
+        const res = await axios.get('http://localhost:3001/api/users/profile', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setProfile(res.data);
+        setAuthor(res.data.fullName);  // Set author to logged-in user's name
+      } catch (err) {
+        console.error('Error loading profile in dashboard:', err);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', description);
@@ -71,9 +91,10 @@ const Dashboard = () => {
               type="text"
               placeholder="Author"
               value={author}
-              onChange={(e) => setAuthor(e.target.value)}
+              onChange={(e) => setAuthor(e.target.value)}  // Allow changing if necessary
               className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
+              disabled  // Disable the field since the author is pre-filled with logged-in user's name
             />
           </div>
           <div className="space-y-2">
