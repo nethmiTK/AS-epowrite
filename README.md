@@ -52,7 +52,7 @@
 - **Edit** existing blog posts
 - **Delete** posts
 - **Update** post content
-- **Upload images** using Multer
+ 
 
 ---
 
