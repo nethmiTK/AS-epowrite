@@ -60,7 +60,7 @@ const HamburgerMenu = ({ user }) => {
             <FiHome /> Home
           </Link>
           <Link to="/dashboard" className="flex items-center gap-3 hover:text-blue-400">
-            <FiUser /> Dashboard
+            <FiUser /> My Account
           </Link>
           <Link to="/profile" className="flex items-center gap-3 hover:text-blue-400">
             <FiSettings /> Profile
