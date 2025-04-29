@@ -7,10 +7,11 @@ import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import Home from "./components/Home";
 import PostDetails from "./components/PostDetails";
-import Profile from "./components/Profile"; // Make sure this route exists
+import Profile from "./components/Profile";
 
 import Header from "./components/Header";
 import HamburgerMenu from "./components/HamburgerMenu";
+import A from './components/a'; // Adjust the path as needed
 
 import "./index.css";
 
@@ -19,14 +20,16 @@ function App() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
-  const isPublicRoute = location.pathname === "/" || location.pathname === "/register";
+  // Hide header and hamburger on these routes
+  const hideHeaderRoutes = ["/", "/register", "/a"];
+  const isHeaderHidden = hideHeaderRoutes.includes(location.pathname);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          if (!isPublicRoute) navigate("/");
+          if (!isHeaderHidden) navigate("/");
           return;
         }
 
@@ -37,23 +40,24 @@ function App() {
       } catch (err) {
         console.error("User fetch error:", err);
         setUser(null);
-        if (!isPublicRoute) navigate("/");
+        if (!isHeaderHidden) navigate("/");
       }
     };
 
     fetchProfile();
-  }, [location.pathname, isPublicRoute, navigate]);
+  }, [location.pathname, isHeaderHidden, navigate]);
 
   return (
     <div className="App">
-      {!isPublicRoute && <Header />}
-      {!isPublicRoute && <HamburgerMenu user={user} />}
-      
-      <div className={`content-wrapper transition-all duration-300 ${!isPublicRoute ? "ml-64" : ""} px-4 pt-6`}>
+      {!isHeaderHidden && <Header />}
+      {!isHeaderHidden && <HamburgerMenu user={user} />}
+
+      <div className={`content-wrapper transition-all duration-300 ${!isHeaderHidden ? "ml-64" : ""} px-4 pt-6`}>
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/a" element={<A />} />
           <Route path="/posts/:id" element={<PostDetails />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />

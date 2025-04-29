@@ -34,23 +34,25 @@ const Header = () => {
   };
 
   return (
-    <header className="w-full pl-64 pr-6 py-4 bg-gradient-to-r from-purple-900 via-indigo-800 to-gray-900 text-white shadow-md fixed top-0 left-0 right-0 z-40 flex justify-between items-center border-b border-white/10">
-      <h1 className="text-2xl font-extrabold tracking-wide text-purple-200">✍️ EpoWrite</h1>
+    <header className="w-full pl-64 pr-6 py-4 bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-xl fixed top-0 left-0 right-0 z-40 flex justify-between items-center border-b border-gray-700">
+      <h1 className="text-3xl font-semibold tracking-wide text-white transform transition-transform hover:scale-105 cursor-pointer">
+        ✍️ EpoWrite
+      </h1>
 
       {profile && (
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
             <img
               src={profile.pp.startsWith('http') ? profile.pp : `http://localhost:3001${profile.pp}`}
               alt="Profile"
-              className="w-10 h-10 rounded-full border-2 border-white object-cover hover:scale-105 transition-transform"
+              className="w-14 h-14 rounded-full border-2 border-gray-600 object-cover hover:scale-110 hover:shadow-xl transition-all duration-300 ease-in-out"
             />
-            <span className="text-sm font-medium text-purple-200">{profile.fullName}</span>
+            <span className="text-lg font-medium text-gray-300">{profile.fullName}</span>
           </div>
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-full text-sm shadow-md transition"
+            className="flex items-center gap-2 bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-semibold shadow-md transition-all duration-300 transform hover:scale-105 active:scale-95"
           >
             <FiLogOut /> Logout
           </button>
