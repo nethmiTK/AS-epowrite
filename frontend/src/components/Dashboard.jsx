@@ -11,6 +11,7 @@ const Dashboard = () => {
   const [editMode, setEditMode] = useState(false);
   const [editPostId, setEditPostId] = useState(null);
   const [profile, setProfile] = useState(null); // Profile data for logged-in user
+  const [posts, setPosts] = useState([]);  // To store the list of posts
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -28,7 +29,17 @@ const Dashboard = () => {
       }
     };
 
+    const fetchPosts = async () => {
+      try {
+        const res = await axios.get('http://localhost:3001/api/posts');
+        setPosts(res.data);  // Set fetched posts
+      } catch (err) {
+        console.error('Error loading posts:', err);
+      }
+    };
+
     fetchProfile();
+    fetchPosts();  // Fetch the posts when the component mounts
   }, []);
 
   const handleSubmit = async (e) => {
@@ -58,10 +69,16 @@ const Dashboard = () => {
       setDescription('');
       setAuthor('');
       setMedia(null);
+
+      // Re-fetch posts after a successful submission
+      fetchPosts();
     } catch (error) {
       console.error('Error submitting post:', error);
     }
   };
+
+  // Filter posts to display only the ones authored by the logged-in user
+  const userPosts = posts.filter(post => post.author === author);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center">
@@ -118,6 +135,28 @@ const Dashboard = () => {
             {editMode ? 'Update Post' : 'Create Post'}
           </button>
         </form>
+
+        <div className="mt-8">
+          <h3 className="text-xl font-semibold text-center text-blue-700 mb-4">My Posts</h3>
+          <div className="space-y-4">
+            {userPosts.length > 0 ? (
+              userPosts.map((post) => (
+                <div key={post._id} className="bg-white p-4 rounded-lg shadow-md">
+                  <h4 className="text-lg font-bold text-gray-800">{post.title}</h4>
+                  <p className="text-gray-600">{post.description}</p>
+                  <p className="text-sm text-gray-500 mt-2">By: {post.author}</p>
+                  {post.media && (
+                    <div className="mt-4">
+                      <img src={`http://localhost:3001${post.media}`} alt="Post Media" className="w-full h-auto rounded-lg" />
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-600 text-center">No posts yet. Start creating!</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
