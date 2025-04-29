@@ -12,6 +12,7 @@ const Profile = () => {
     pp: null,
   });
   const [notification, setNotification] = useState('');
+  const [preview, setPreview] = useState(null); // State to store image preview
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -41,7 +42,17 @@ const Profile = () => {
   }, []);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-  const handleFileChange = (e) => setFormData({ ...formData, pp: e.target.files[0] });
+
+  // Handle file change and set preview image
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setFormData({ ...formData, pp: file });
+    // Create an object URL for the selected file and set it as preview
+    if (file) {
+      const objectURL = URL.createObjectURL(file);
+      setPreview(objectURL); // Set the preview URL
+    }
+  };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -65,9 +76,9 @@ const Profile = () => {
   };
 
   return (
-    <div className="p-6 bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 min-h-screen flex items-center justify-center">
-      <div className="bg-white/10 backdrop-blur-lg p-8 rounded-3xl shadow-2xl w-full max-w-2xl z-10 text-white">
-        <h2 className="text-2xl font-bold mb-4">👤 Profile Settings</h2>
+    <div className="p-6 bg-white min-h-screen flex items-center justify-center">
+      <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-2xl z-10 text-black">
+        <h2 className="text-3xl font-extrabold text-black mb-4">👤 Profile Settings</h2>
         {notification && (
           <motion.p className="mb-4 text-red-400" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             {notification}
@@ -78,14 +89,14 @@ const Profile = () => {
             editMode ? (
               <motion.form
                 onSubmit={handleUpdate}
-                className="w-full space-y-4"
+                className="w-full space-y-6"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
               >
                 {['fullName', 'username', 'email'].map((field, idx) => (
                   <motion.div key={idx} className="flex flex-col w-full">
-                    <label className="mb-1 text-sm">
+                    <label className="mb-2 text-sm font-semibold text-black">
                       {field === 'fullName' ? 'Full Name' : field.charAt(0).toUpperCase() + field.slice(1)}
                     </label>
                     <motion.input
@@ -93,7 +104,7 @@ const Profile = () => {
                       name={field}
                       value={formData[field]}
                       onChange={handleChange}
-                      className="p-3 rounded-lg bg-black/30 border border-gray-600 focus:ring-2 focus:ring-purple-500"
+                      className="p-4 rounded-xl bg-gray-100 border-2 border-gray-400 focus:ring-2 focus:ring-pink-500 text-black"
                       initial={{ scaleX: 0 }}
                       animate={{ scaleX: 1 }}
                       transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -101,28 +112,38 @@ const Profile = () => {
                   </motion.div>
                 ))}
                 <div className="flex flex-col">
-                  <label className="mb-1 text-sm">Profile Picture</label>
+                  <label className="mb-2 text-sm font-semibold text-black">Profile Picture</label>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
-                    className="p-3 rounded-lg bg-black/30 border border-gray-600 focus:ring-2 focus:ring-purple-500"
+                    className="p-4 rounded-xl bg-gray-100 border-2 border-gray-400 focus:ring-2 focus:ring-pink-500"
                   />
+                  {/* Display image preview if a file is selected */}
+                  {preview && (
+                    <div className="mt-6 flex justify-center">
+                      <img
+                        src={preview}
+                        alt="Profile Preview"
+                        className="w-40 h-40 rounded-full object-cover border-4 border-pink-500"
+                      />
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex justify-between mt-4">
+                <div className="flex justify-between mt-6">
                   <motion.button
                     type="button"
                     onClick={() => { setEditMode(false); setNotification(''); }}
-                    className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg"
-                    whileTap={{ scale: 0.9 }}
+                    className="px-6 py-3 bg-gray-300 hover:bg-gray-400 rounded-xl text-black transition-all duration-300"
+                    whileTap={{ scale: 0.95 }}
                   >
                     Cancel
                   </motion.button>
                   <motion.button
                     type="submit"
-                    className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg"
-                    whileTap={{ scale: 0.9 }}
+                    className="px-6 py-3 bg-pink-500 hover:bg-pink-400 rounded-xl text-white transition-all duration-300"
+                    whileTap={{ scale: 0.95 }}
                   >
                     Save Changes
                   </motion.button>
@@ -130,33 +151,33 @@ const Profile = () => {
               </motion.form>
             ) : (
               <motion.div
-                className="space-y-4 w-full"
+                className="space-y-6 w-full"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
               >
-                <div><strong>Full Name:</strong> {profile.fullName}</div>
-                <div><strong>Username:</strong> {profile.username}</div>
-                <div><strong>Email:</strong> {profile.email}</div>
+                <div><strong className="text-black">Full Name:</strong> {profile.fullName}</div>
+                <div><strong className="text-black">Username:</strong> {profile.username}</div>
+                <div><strong className="text-black">Email:</strong> {profile.email}</div>
                 <div className="flex flex-col items-start">
-                  <strong>Profile Picture:</strong>
+                  <strong className="text-black">Profile Picture:</strong>
                   <img
                     src={profile.pp.startsWith('http') ? profile.pp : `http://localhost:3001${profile.pp}`}
                     alt="Profile"
-                    className="w-24 h-24 mt-2 rounded-full object-cover"
+                    className="w-32 h-32 mt-4 rounded-full object-cover border-4 border-pink-500"
                   />
                 </div>
                 <motion.button
                   onClick={() => setEditMode(true)}
-                  className="mt-6 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg"
-                  whileTap={{ scale: 0.9 }}
+                  className="mt-6 px-6 py-3 bg-pink-500 hover:bg-pink-400 rounded-xl text-white transition-all duration-300"
+                  whileTap={{ scale: 0.95 }}
                 >
                   Edit Profile
                 </motion.button>
               </motion.div>
             )
           ) : (
-            <p className="text-white">Loading profile...</p>
+            <p className="text-black">Loading profile...</p>
           )}
         </AnimatePresence>
       </div>
