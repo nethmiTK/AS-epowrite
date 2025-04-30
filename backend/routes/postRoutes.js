@@ -31,26 +31,17 @@ router.post('/', upload.single('media'), async (req, res) => {
   }
 });
 
-// Like or Unlike a Post (toggle)
+// Like a post
 router.post('/:postId/like', async (req, res) => {
   try {
-    const userId = req.body.userId;
     const post = await Post.findById(req.params.postId);
     if (!post) return res.status(404).json({ message: 'Post not found' });
 
-    const index = post.likes.indexOf(userId);
-    if (index === -1) {
-      // Not liked yet, so like
-      post.likes.push(userId);
-    } else {
-      // Already liked, so unlike
-      post.likes.splice(index, 1);
-    }
-
+    post.likes += 1;  // Increment like count
     await post.save();
-    res.json(post); // Return updated post with new likes array
+    res.json(post);  // Respond with the updated post
   } catch (error) {
-    res.status(500).json({ message: 'Error toggling like', error: error.message });
+    res.status(500).json({ message: 'Error liking post', error: error.message });
   }
 });
 
@@ -67,56 +58,6 @@ router.post('/:postId/comment', async (req, res) => {
     res.json(post);  // Respond with the updated post
   } catch (error) {
     res.status(500).json({ message: 'Error adding comment', error: error.message });
-  }
-});
-
-// Update a post (Replace the entire post with new data)
-router.put('/:postId', upload.single('media'), async (req, res) => {
-  const { title, description, author } = req.body;
-  let media = null;
-
-  if (req.file) {
-    media = req.file.path;  // Save the file path (image/video)
-  }
-
-  try {
-    const post = await Post.findByIdAndUpdate(
-      req.params.postId,
-      { title, description, author, media },
-      { new: true }  // This ensures the updated post is returned
-    );
-
-    if (!post) return res.status(404).json({ message: 'Post not found' });
-
-    res.json(post); // Respond with the updated post
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating post', error: error.message });
-  }
-});
-
-// Update a post (Partial update, updating only provided fields)
-router.patch('/:postId', upload.single('media'), async (req, res) => {
-  const { title, description, author } = req.body;
-  let media = null;
-
-  if (req.file) {
-    media = req.file.path;  // Save the file path (image/video)
-  }
-
-  try {
-    const post = await Post.findById(req.params.postId);
-    if (!post) return res.status(404).json({ message: 'Post not found' });
-
-    // Update only the fields that were provided
-    if (title) post.title = title;
-    if (description) post.description = description;
-    if (author) post.author = author;
-    if (media) post.media = media;
-
-    await post.save();
-    res.json(post);  // Respond with the updated post
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating post', error: error.message });
   }
 });
 
