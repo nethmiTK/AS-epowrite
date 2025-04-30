@@ -112,7 +112,7 @@ router.patch('/:postId', upload.single('media'), async (req, res) => {
   }
 });
 
-// ✅ Delete a post
+// Delete a post
 router.delete('/:postId', async (req, res) => {
   try {
     const deletedPost = await Post.findByIdAndDelete(req.params.postId);

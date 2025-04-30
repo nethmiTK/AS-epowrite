@@ -105,7 +105,6 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-start p-6 bg-gray-100">
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl border border-gray-300">
-
         {/* Profile Info */}
         {profile && (
           <div className="flex items-center gap-4 mb-8">
@@ -200,7 +199,7 @@ const Dashboard = () => {
                   <div className="mt-4 flex justify-end">
                     <button
                       onClick={() => handleEdit(post)}
-                      className="text-sm text-pink-500 hover:underline"
+                      className="text-pink-500 hover:text-pink-400"
                     >
                       Edit
                     </button>
@@ -208,7 +207,7 @@ const Dashboard = () => {
                 </div>
               ))
             ) : (
-              <p className="text-center text-gray-500">No posts yet.</p>
+              <p className="text-gray-500 text-center">No posts available.</p>
             )}
           </div>
         </div>
