@@ -86,9 +86,6 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-white text-black px-4 py-6 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto flex flex-col items-center justify-center">
-        {/* Profile Header */}
-
-        {/* Create Post Button */}
         <div className="mb-4">
           <button
             onClick={() => setShowForm(!showForm)}
@@ -98,14 +95,12 @@ const Dashboard = () => {
           </button>
         </div>
 
-        {/* Notification */}
         {notification && (
           <div className="mb-4 p-3 border border-green-600 text-green-600 rounded text-sm">
             {notification}
           </div>
         )}
 
-        {/* Create Post Form */}
         {showForm && (
           <form
             onSubmit={handleSubmit}
@@ -148,7 +143,6 @@ const Dashboard = () => {
           </form>
         )}
 
-        {/* My Posts Section */}
         <div className="space-y-6 w-full">
           {posts.length === 0 ? (
             <p className="text-center text-gray-500">No posts yet.</p>
@@ -168,7 +162,6 @@ const Dashboard = () => {
                     </div>
                   </div>
 
-                  {/* Options menu (⋯) */}
                   <div className="relative">
                     <button
                       onClick={() =>
