@@ -14,7 +14,6 @@ const Dashboard = () => {
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
 
-  // Reusable fetchPosts function using useCallback
   const fetchPosts = useCallback(async () => {
     try {
       const res = await axios.get('http://localhost:3001/api/posts');
@@ -73,13 +72,10 @@ const Dashboard = () => {
         });
       }
 
-      // Clear form
       setTitle('');
       setDescription('');
       setMedia(null);
       setPreview(null);
-
-      // Refresh posts
       await fetchPosts();
     } catch (error) {
       console.error('Error submitting post:', error);
@@ -96,12 +92,21 @@ const Dashboard = () => {
     }
   };
 
+  const handleEdit = (post) => {
+    setEditMode(true);
+    setEditPostId(post._id);
+    setTitle(post.title);
+    setDescription(post.description);
+    setPreview(`http://localhost:3001${post.media}`);
+  };
+
   const userPosts = posts.filter((post) => post.author === author);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start p-6 bg-gray-100">
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl border border-gray-300">
-        {/* Profile section */}
+
+        {/* Profile Info */}
         {profile && (
           <div className="flex items-center gap-4 mb-8">
             <img
@@ -166,7 +171,7 @@ const Dashboard = () => {
           </button>
         </form>
 
-        {/* User's Posts Section */}
+        {/* My Posts */}
         <div className="mt-10">
           <h3 className="text-xl font-semibold text-pink-500 text-center mb-6">My Posts</h3>
           <div className="space-y-6">
@@ -176,19 +181,12 @@ const Dashboard = () => {
                   key={post._id}
                   className="bg-white p-6 rounded-lg shadow-md border border-gray-200"
                 >
-                  <div className="flex items-center gap-4 mb-4">
-                    <img
-                      src={post.profilePic}
-                      alt="Author"
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                    <div>
-                      <span className="font-semibold text-gray-800">{post.author}</span>
-                      <p className="text-sm text-gray-600">{new Date(post.createdAt).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                  <h4 className="font-bold text-gray-900">{post.title}</h4>
+                  <h4 className="font-bold text-gray-900 text-lg">{post.title}</h4>
+                  <p className="text-sm text-gray-500 mb-2">
+                    {new Date(post.createdAt).toLocaleDateString()}
+                  </p>
                   <p className="text-gray-700">{post.description}</p>
+
                   {post.media && (
                     <div className="mt-4">
                       <img
@@ -198,6 +196,15 @@ const Dashboard = () => {
                       />
                     </div>
                   )}
+
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      onClick={() => handleEdit(post)}
+                      className="text-sm text-pink-500 hover:underline"
+                    >
+                      Edit
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (

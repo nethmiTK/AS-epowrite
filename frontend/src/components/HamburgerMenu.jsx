@@ -1,21 +1,24 @@
- // HamburgerMenu.js
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FiMenu, FiX, FiHome, FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
+import {
+  FiMenu,
+  FiX,
+  FiHome,
+  FiUser,
+  FiSettings,
+  FiLogOut,
+} from 'react-icons/fi';
 
 const HamburgerMenu = ({ user }) => {
   const [isOpen, setIsOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Hide sidebar on login/register pages
   const hideSidebar = location.pathname === '/' || location.pathname === '/register';
 
-  // Make it responsive
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 768) setIsOpen(false);
-      else setIsOpen(true);
+      setIsOpen(window.innerWidth >= 768);
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -31,49 +34,50 @@ const HamburgerMenu = ({ user }) => {
 
   return (
     <>
-      {/* Toggle button on small screens */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed top-4 left-4 z-50 text-3xl bg-gray-800 text-white p-2 rounded-lg shadow-md md:hidden"
+          className="fixed top-4 left-4 z-50 p-2 bg-black text-white rounded-xl hover:bg-pink-500 transition md:hidden"
         >
-          <FiMenu />
+          <FiMenu size={24} />
         </button>
       )}
 
-      {/* Sidebar */}
-      <div
-        className={`fixed top-0 left-0 h-full w-64 bg-gradient-to-b from-gray-800 to-gray-900 text-white z-40 p-6 shadow-lg transform transition-transform duration-300 ${
+      <aside
+        className={`fixed top-0 left-0 h-full w-64 bg-gradient-to-b from-black to-gray-900 text-white z-40 px-6 py-8 border-r border-gray-800 shadow-xl transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">👋 {user?.fullName }</h2>
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-lg font-semibold text-pink-400 truncate max-w-[80%]">
+            👋 {user?.fullName}
+          </h2>
           <button
             onClick={() => setIsOpen(false)}
-            className="text-2xl md:hidden text-gray-400 hover:text-white"
+            className="text-white hover:text-pink-400 md:hidden"
           >
-            <FiX />
+            <FiX size={22} />
           </button>
         </div>
-        <nav className="space-y-5 text-lg">
-          <Link to="/home" className="flex items-center gap-3 hover:text-blue-400">
+
+        <nav className="space-y-5 text-base font-medium">
+          <Link to="/home" className="flex items-center gap-3 hover:text-pink-400 transition">
             <FiHome /> Home
           </Link>
-          <Link to="/dashboard" className="flex items-center gap-3 hover:text-blue-400">
+          <Link to="/dashboard" className="flex items-center gap-3 hover:text-pink-400 transition">
             <FiUser /> My Account
           </Link>
-          <Link to="/profile" className="flex items-center gap-3 hover:text-blue-400">
+          <Link to="/profile" className="flex items-center gap-3 hover:text-pink-400 transition">
             <FiSettings /> Profile
           </Link>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 text-red-400 hover:text-red-600"
+            className="flex items-center gap-3 text-red-500 hover:text-red-700 transition"
           >
             <FiLogOut /> Logout
           </button>
         </nav>
-      </div>
+      </aside>
     </>
   );
 };

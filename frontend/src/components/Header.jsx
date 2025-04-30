@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FiLogOut } from 'react-icons/fi';
 
 const Header = () => {
   const [profile, setProfile] = useState(null);
@@ -21,40 +20,33 @@ const Header = () => {
         });
         setProfile(res.data);
       } catch (err) {
-        console.error('Error loading profile in header:', err);
+        console.error('Header profile fetch error:', err);
       }
     };
 
     fetchProfile();
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/');
-  };
-
   return (
-    <header className="w-full pl-64 pr-6 py-4 bg-black text-white shadow-md fixed top-0 left-0 right-0 z-40 flex justify-between items-center border-b border-gray-800">
-      <h1 className="text-3xl font-bold tracking-wide text-pink-500 hover:text-pink-400 transition cursor-pointer">
+    <header className="fixed top-0 left-0 right-0 z-40 h-16 px-6 bg-black text-white shadow-md border-b border-gray-800 flex items-center justify-between md:pl-64">
+      <h1
+        className="text-xl md:text-2xl font-bold text-pink-500 hover:text-pink-400 cursor-pointer transition-all duration-300"
+        onClick={() => navigate('/home')}
+      >
         ✍️ EpoWrite
       </h1>
-
       {profile && (
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-3">
-            <img
-              src={
-                profile.pp.startsWith('http')
-                  ? profile.pp
-                  : `http://localhost:3001${profile.pp}`
-              }
-              alt="Profile"
-              className="w-12 h-12 rounded-full border-2 border-white object-cover hover:scale-110 transition duration-300"
-            />
-            <span className="text-base font-medium text-white">{profile.fullName}</span>
-          </div>
-
-         
+        <div className="flex items-center gap-3">
+          <img
+            src={
+              profile.pp.startsWith('http')
+                ? profile.pp
+                : `http://localhost:3001${profile.pp}`
+            }
+            alt="Profile"
+            className="w-10 h-10 rounded-full border-2 border-white object-cover hover:scale-110 transition duration-300"
+          />
+          <span className="hidden sm:block text-sm font-medium">{profile.fullName}</span>
         </div>
       )}
     </header>
