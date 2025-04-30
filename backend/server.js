@@ -2,9 +2,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const authRoutes = require('./routes/auth');        // Your login/register routes
-const userRoutes = require('./routes/userRoutes');  // Your profile routes
-const postRoutes = require('./routes/postRoutes');  // Your post routes
+const authRoutes = require('./routes/auth'); // Your login/register routes
+const userRoutes = require('./routes/userRoutes'); // Your profile routes
+const postRoutes = require('./routes/postRoutes'); // Your post routes
 require('dotenv').config();
 
 const app = express();
@@ -16,15 +16,11 @@ app.use(cors());
 
 // Serve uploaded images
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
- 
 
 // Routes
 app.use('/api/auth', authRoutes);  // Auth routes
 app.use('/api/users', userRoutes);  // User profile routes
 app.use('/api/posts', postRoutes);  // Post routes
-// In server.js, make sure this is added:
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 
 // MongoDB Connection
 mongoose
