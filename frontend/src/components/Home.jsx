@@ -5,7 +5,7 @@ const HomePage = () => {
   const [posts, setPosts] = useState([]);
   const [profile, setProfile] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [userLikes, setUserLikes] = useState(new Set());  // Track the posts that the user has liked
+  const [userLikes, setUserLikes] = useState(new Set()); // Track the posts that the user has liked
   const [commentText, setCommentText] = useState(''); // Store the comment input text
   const [showComments, setShowComments] = useState(null); // Track which post's comments are being displayed
 
@@ -51,13 +51,12 @@ const HomePage = () => {
         post._id === postId ? res.data : post
       ));
 
-      // Update the userLikes state to keep track of liked posts
       setUserLikes(prev => {
         const newLikes = new Set(prev);
         if (newLikes.has(postId)) {
-          newLikes.delete(postId); // If the post is already liked, remove it
+          newLikes.delete(postId);
         } else {
-          newLikes.add(postId); // Otherwise, add it
+          newLikes.add(postId);
         }
         return newLikes;
       });
@@ -77,7 +76,7 @@ const HomePage = () => {
       setPosts(posts.map(post =>
         post._id === postId ? res.data : post
       ));
-      setCommentText(''); // Clear the input field after submitting
+      setCommentText('');
     } catch (err) {
       console.error('Error commenting on the post:', err);
     }
@@ -90,6 +89,13 @@ const HomePage = () => {
   const handleShare = (postId) => {
     navigator.clipboard.writeText(`${window.location.origin}/posts/${postId}`);
     alert('Post link copied to clipboard!');
+  };
+
+  // Utility function to format date
+  const formatDate = (date) => {
+    const newDate = new Date(date); // Ensure it's a valid date object
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return newDate.toLocaleDateString(undefined, options);
   };
 
   return (
@@ -115,19 +121,18 @@ const HomePage = () => {
                 {/* Post Header */}
                 <div className="flex items-center gap-4 mb-4">
                   <img
-                    src={
-                      profile && profile.username === post.author
-                        ? profile.profilePic
-                          ? `http://localhost:3001/${profile.profilePic}`
-                          : 'https://via.placeholder.com/50'
+                    src={profile && profile.username === post.author
+                      ? profile.profilePic
+                        ? `http://localhost:3001/${profile.profilePic}`
                         : 'https://via.placeholder.com/50'
+                      : 'https://via.placeholder.com/50'
                     }
                     alt="Profile"
                     className="w-12 h-12 rounded-full object-cover"
                   />
                   <div>
                     <p className="font-semibold text-gray-900">{post.author}</p>
-                    <p className="text-sm text-gray-500">{new Date(post.date).toLocaleDateString()}</p>
+                    <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p> {/* Format date */}
                   </div>
                 </div>
 
@@ -175,40 +180,37 @@ const HomePage = () => {
                       🔗 Share
                     </button>
                   </div>
-                  <div className="text-sm text-gray-500">{post.views} Views</div>
-                </div>
+                  <div className="text-gray-500">
+                    {showComments === post._id && (
+                      <div className="mt-4">
+                        {post.comments.map((comment, index) => (
+                          <div key={index} className="mb-4 p-4 border-b">
+                            <p className="font-semibold text-gray-900">{comment.user}</p>
+                            <p className="text-gray-600">{comment.comment}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
-                {/* Show Comments */}
-                {showComments === post._id && (
-                  <div className="mt-4">
-                    <div className="border-t pt-4">
-                      {/* Display all comments, only showing comment text */}
-                      {post.comments.map((comment, index) => (
-                        <div key={index} className="mb-2">
-                          {/* Display only the comment message */}
-                          <p className="text-gray-700">{comment.text}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Comment Input */}
-                    <div className="mt-4">
-                      <textarea
-                        value={commentText}
-                        onChange={(e) => setCommentText(e.target.value)}
-                        className="w-full p-3 border rounded-lg"
-                        placeholder="Add a comment..."
-                        rows="3"
-                      />
-                      <button
-                        onClick={() => handleCommentSubmit(post._id)}
-                        className="mt-2 bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-400"
-                      >
-                        Post Comment
-                      </button>
-                    </div>
+                    {showComments === post._id && (
+                      <div className="mt-4">
+                        <textarea
+                          value={commentText}
+                          onChange={(e) => setCommentText(e.target.value)}
+                          placeholder="Add a comment"
+                          rows="3"
+                          className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        ></textarea>
+                        <button
+                          onClick={() => handleCommentSubmit(post._id)}
+                          className="mt-2 bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600"
+                        >
+                          Post Comment
+                        </button>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </li>
             ))}
           </ul>
