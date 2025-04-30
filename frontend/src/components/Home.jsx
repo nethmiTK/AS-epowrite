@@ -40,19 +40,29 @@ const HomePage = () => {
   );
 
   const handleLike = async (postId) => {
-    if (userLikes.has(postId)) {
-      alert('You have already liked this post');
-      return;
-    }
+    if (!profile) return alert('You must be logged in to like posts');
 
     try {
-      const res = await axios.post(`http://localhost:3001/api/posts/${postId}/like`);
+      const res = await axios.post(
+        `http://localhost:3001/api/posts/${postId}/like`,
+        { userId: profile._id }  // Send the userId from the logged-in profile
+      );
       setPosts(posts.map(post =>
         post._id === postId ? res.data : post
       ));
-      setUserLikes(prev => new Set(prev.add(postId)));  // Mark this post as liked
+
+      // Update the userLikes state to keep track of liked posts
+      setUserLikes(prev => {
+        const newLikes = new Set(prev);
+        if (newLikes.has(postId)) {
+          newLikes.delete(postId); // If the post is already liked, remove it
+        } else {
+          newLikes.add(postId); // Otherwise, add it
+        }
+        return newLikes;
+      });
     } catch (err) {
-      console.error('Error liking the post:', err);
+      console.error('Error toggling like:', err);
     }
   };
 
@@ -147,7 +157,7 @@ const HomePage = () => {
                 <div className="flex justify-between items-center mt-6">
                   <div className="flex gap-6 text-gray-500">
                     <button
-                      className="flex items-center gap-2 hover:text-pink-500 transition"
+                      className={`flex items-center gap-2 ${userLikes.has(post._id) ? 'text-pink-500' : 'hover:text-pink-500'} transition`}
                       onClick={() => handleLike(post._id)}
                     >
                       👍 Like ({post.likes.length})
