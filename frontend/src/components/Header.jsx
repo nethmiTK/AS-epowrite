@@ -27,11 +27,6 @@ const Header = () => {
     fetchProfile();
   }, [navigate]);
 
-  const handleProfileClick = () => {
-    // Navigate to the profile page when the profile picture is clicked
-    navigate('/profile');
-  };
-
   return (
     <header className="fixed top-0 left-0 right-0 z-40 h-16 px-6 bg-black text-white shadow-md border-b border-gray-800 flex items-center justify-between md:pl-64">
       <h1
@@ -49,8 +44,7 @@ const Header = () => {
                 : `http://localhost:3001${profile.pp}`
             }
             alt="Profile"
-            className="w-10 h-10 rounded-full border-2 border-white object-cover hover:scale-110 transition duration-300 cursor-pointer"
-            onClick={handleProfileClick} // Add click event to navigate to profile page
+            className="w-10 h-10 rounded-full border-2 border-white object-cover hover:scale-110 transition duration-300"
           />
           <span className="hidden sm:block text-sm font-medium">{profile.fullName}</span>
         </div>
