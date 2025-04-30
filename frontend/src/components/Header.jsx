@@ -54,12 +54,7 @@ const Header = () => {
             <span className="text-base font-medium text-white">{profile.fullName}</span>
           </div>
 
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 bg-white text-black hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-semibold shadow-md transition transform hover:scale-105 active:scale-95"
-          >
-            <FiLogOut /> Logout
-          </button>
+         
         </div>
       )}
     </header>

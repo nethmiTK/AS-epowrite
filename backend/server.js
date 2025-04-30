@@ -22,6 +22,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);  // Auth routes
 app.use('/api/users', userRoutes);  // User profile routes
 app.use('/api/posts', postRoutes);  // Post routes
+// In server.js, make sure this is added:
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // MongoDB Connection
 mongoose
