@@ -6,6 +6,8 @@ const HomePage = () => {
   const [profile, setProfile] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [userLikes, setUserLikes] = useState(new Set());  // Track the posts that the user has liked
+  const [commentText, setCommentText] = useState(''); // Store the comment input text
+  const [showComments, setShowComments] = useState(null); // Track which post's comments are being displayed
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -54,17 +56,25 @@ const HomePage = () => {
     }
   };
 
-  const handleComment = async (postId, comment) => {
-    if (!comment) return;
+  const handleCommentSubmit = async (postId) => {
+    if (!commentText.trim()) return;
 
     try {
-      const res = await axios.post(`http://localhost:3001/api/posts/${postId}/comment`, { comment, user: profile.username });
+      const res = await axios.post(`http://localhost:3001/api/posts/${postId}/comment`, {
+        comment: commentText,
+        user: profile.username,  // Ensure the correct username is saved with the comment
+      });
       setPosts(posts.map(post =>
         post._id === postId ? res.data : post
       ));
+      setCommentText(''); // Clear the input field after submitting
     } catch (err) {
       console.error('Error commenting on the post:', err);
     }
+  };
+
+  const handleShowComments = (postId) => {
+    setShowComments(prev => prev === postId ? null : postId);  // Toggle the visibility of comments
   };
 
   const handleShare = (postId) => {
@@ -140,14 +150,11 @@ const HomePage = () => {
                       className="flex items-center gap-2 hover:text-pink-500 transition"
                       onClick={() => handleLike(post._id)}
                     >
-                      👍 Like ({post.likes})
+                      👍 Like ({post.likes.length})
                     </button>
                     <button
                       className="flex items-center gap-2 hover:text-pink-500 transition"
-                      onClick={() => {
-                        const comment = prompt("Enter your comment:");
-                        handleComment(post._id, comment);
-                      }}
+                      onClick={() => handleShowComments(post._id)}
                     >
                       💬 Comment ({post.comments.length})
                     </button>
@@ -160,6 +167,38 @@ const HomePage = () => {
                   </div>
                   <div className="text-sm text-gray-500">{post.views} Views</div>
                 </div>
+
+                {/* Show Comments */}
+                {showComments === post._id && (
+                  <div className="mt-4">
+                    <div className="border-t pt-4">
+                      {/* Display all comments, only showing comment text */}
+                      {post.comments.map((comment, index) => (
+                        <div key={index} className="mb-2">
+                          {/* Display only the comment message */}
+                          <p className="text-gray-700">{comment.text}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Comment Input */}
+                    <div className="mt-4">
+                      <textarea
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        className="w-full p-3 border rounded-lg"
+                        placeholder="Add a comment..."
+                        rows="3"
+                      />
+                      <button
+                        onClick={() => handleCommentSubmit(post._id)}
+                        className="mt-2 bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-400"
+                      >
+                        Post Comment
+                      </button>
+                    </div>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
