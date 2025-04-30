@@ -5,6 +5,7 @@ const HomePage = () => {
   const [posts, setPosts] = useState([]);
   const [profile, setProfile] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [userLikes, setUserLikes] = useState(new Set());  // Track the posts that the user has liked
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -37,11 +38,17 @@ const HomePage = () => {
   );
 
   const handleLike = async (postId) => {
+    if (userLikes.has(postId)) {
+      alert('You have already liked this post');
+      return;
+    }
+
     try {
       const res = await axios.post(`http://localhost:3001/api/posts/${postId}/like`);
       setPosts(posts.map(post =>
         post._id === postId ? res.data : post
       ));
+      setUserLikes(prev => new Set(prev.add(postId)));  // Mark this post as liked
     } catch (err) {
       console.error('Error liking the post:', err);
     }
@@ -49,8 +56,9 @@ const HomePage = () => {
 
   const handleComment = async (postId, comment) => {
     if (!comment) return;
+
     try {
-      const res = await axios.post(`http://localhost:3001/api/posts/${postId}/comment`, { comment });
+      const res = await axios.post(`http://localhost:3001/api/posts/${postId}/comment`, { comment, user: profile.username });
       setPosts(posts.map(post =>
         post._id === postId ? res.data : post
       ));

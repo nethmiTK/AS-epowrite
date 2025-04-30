@@ -6,15 +6,17 @@ const postSchema = new mongoose.Schema({
   author: String,
   date: { type: Date, default: Date.now },
   media: {
-    type: String, // This will store the file path (for image or video)
+    type: String,
     required: false, // Optional field for now
   },
-  likes: { type: Number, default: 0 }, // Adding a likes field
-  comments: [{ 
-    user: { type: String, required: true },
-    comment: { type: String, required: true },
-    date: { type: Date, default: Date.now }
-  }] // Array of comments
+  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],  // Array of user IDs who liked the post
+  comments: [
+    {
+      user: { type: String, required: true },  // User who commented
+      comment: { type: String, required: true },  // Comment text
+      date: { type: Date, default: Date.now }
+    }
+  ]
 });
 
 module.exports = mongoose.model("Post", postSchema);
