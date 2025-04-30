@@ -5,6 +5,7 @@ const A = () => {
   const [posts, setPosts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Fetch posts from backend
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -18,15 +19,20 @@ const A = () => {
     fetchPosts();
   }, []);
 
+  // Handle post deletion
   const handleDelete = async (postId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this post?");
+    if (!confirmDelete) return;
+
     try {
       await axios.delete(`http://localhost:3001/api/posts/${postId}`);
-      setPosts(posts.filter((post) => post._id !== postId));
+      setPosts((prevPosts) => prevPosts.filter((post) => post._id !== postId));
     } catch (error) {
       console.error('Error deleting post:', error);
     }
   };
 
+  // Filter posts by title or author name
   const filteredPosts = posts.filter(
     (post) =>
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -84,6 +90,7 @@ const A = () => {
                     </div>
                   </div>
 
+                  {/* Delete Button */}
                   <button
                     onClick={() => handleDelete(post._id)}
                     className="mt-4 px-4 py-2 bg-red-500 hover:bg-red-400 text-white rounded-lg"

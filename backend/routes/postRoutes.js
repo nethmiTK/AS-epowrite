@@ -1,6 +1,6 @@
 const express = require('express');
 const Post = require('../models/Post');
-const upload = require('../middleware/upload');  // Multer upload config
+const upload = require('../middleware/upload');
 const router = express.Router();
 
 // Fetch all posts
@@ -13,25 +13,24 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Create a new post with media upload
+// Create a new post
 router.post('/', upload.single('media'), async (req, res) => {
   const { title, description, author } = req.body;
   let media = null;
-
   if (req.file) {
-    media = req.file.path;  // Save the file path (image/video)
+    media = req.file.path;
   }
 
   try {
     const newPost = new Post({ title, description, author, media });
     await newPost.save();
-    res.status(201).json(newPost);  // Respond with the newly created post
+    res.status(201).json(newPost);
   } catch (error) {
     res.status(500).json({ message: 'Error creating post', error: error.message });
   }
 });
 
-// Like or Unlike a Post (toggle)
+// Toggle like
 router.post('/:postId/like', async (req, res) => {
   try {
     const userId = req.body.userId;
@@ -40,83 +39,89 @@ router.post('/:postId/like', async (req, res) => {
 
     const index = post.likes.indexOf(userId);
     if (index === -1) {
-      // Not liked yet, so like
       post.likes.push(userId);
     } else {
-      // Already liked, so unlike
       post.likes.splice(index, 1);
     }
 
     await post.save();
-    res.json(post); // Return updated post with new likes array
+    res.json(post);
   } catch (error) {
     res.status(500).json({ message: 'Error toggling like', error: error.message });
   }
 });
 
-// Add a comment to a post
+// Add comment
 router.post('/:postId/comment', async (req, res) => {
-  const { comment, user } = req.body;  // Assuming you are passing user and comment in the body
+  const { comment, user } = req.body;
   try {
     const post = await Post.findById(req.params.postId);
     if (!post) return res.status(404).json({ message: 'Post not found' });
 
-    // Add the new comment
     post.comments.push({ user, comment });
     await post.save();
-    res.json(post);  // Respond with the updated post
+    res.json(post);
   } catch (error) {
     res.status(500).json({ message: 'Error adding comment', error: error.message });
   }
 });
 
-// Update a post (Replace the entire post with new data)
+// Full update
 router.put('/:postId', upload.single('media'), async (req, res) => {
   const { title, description, author } = req.body;
   let media = null;
-
   if (req.file) {
-    media = req.file.path;  // Save the file path (image/video)
+    media = req.file.path;
   }
 
   try {
     const post = await Post.findByIdAndUpdate(
       req.params.postId,
       { title, description, author, media },
-      { new: true }  // This ensures the updated post is returned
+      { new: true }
     );
-
     if (!post) return res.status(404).json({ message: 'Post not found' });
 
-    res.json(post); // Respond with the updated post
+    res.json(post);
   } catch (error) {
     res.status(500).json({ message: 'Error updating post', error: error.message });
   }
 });
 
-// Update a post (Partial update, updating only provided fields)
+// Partial update
 router.patch('/:postId', upload.single('media'), async (req, res) => {
   const { title, description, author } = req.body;
   let media = null;
-
   if (req.file) {
-    media = req.file.path;  // Save the file path (image/video)
+    media = req.file.path;
   }
 
   try {
     const post = await Post.findById(req.params.postId);
     if (!post) return res.status(404).json({ message: 'Post not found' });
 
-    // Update only the fields that were provided
     if (title) post.title = title;
     if (description) post.description = description;
     if (author) post.author = author;
     if (media) post.media = media;
 
     await post.save();
-    res.json(post);  // Respond with the updated post
+    res.json(post);
   } catch (error) {
     res.status(500).json({ message: 'Error updating post', error: error.message });
+  }
+});
+
+// ✅ Delete a post
+router.delete('/:postId', async (req, res) => {
+  try {
+    const deletedPost = await Post.findByIdAndDelete(req.params.postId);
+    if (!deletedPost) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    res.json({ message: 'Post deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting post', error: error.message });
   }
 });
 
