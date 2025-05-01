@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   FiMenu,
-  FiX,
+  FiX,  
   FiHome,
   FiUser,
   FiLogOut,
@@ -35,9 +35,9 @@ const Hamburger = ({ user }) => {
   if (hideNavbar) return null;
 
   return (
-    <header className="bg-white text-white shadow-lg fixed w-full z-50">
+    <header className="bg-white shadow-lg fixed w-full z-50">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-        
+
         {/* USER PIC AND WELCOME MESSAGE */}
         {user && (
           <div
@@ -83,7 +83,7 @@ const Hamburger = ({ user }) => {
         <div className="md:hidden order-4">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="text-white hover:text-purple-500 transition"
+            className="text-purple-500 hover:text-purple-600 transition"
           >
             {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
           </button>
