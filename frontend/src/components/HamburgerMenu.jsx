@@ -5,81 +5,114 @@ import {
   FiX,
   FiHome,
   FiUser,
-  FiSettings,
   FiLogOut,
 } from 'react-icons/fi';
-
-const HamburgerMenu = ({ user }) => {
-  const [isOpen, setIsOpen] = useState(true);
+ 
+const Hamburger = ({ user }) => {
+  const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
-  const hideSidebar = location.pathname === '/' || location.pathname === '/register';
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsOpen(window.innerWidth >= 768);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const hideNavbar = location.pathname === '/' || location.pathname === '/register';
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/');
   };
 
-  if (hideSidebar) return null;
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) setIsOpen(false);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  if (hideNavbar) return null;
 
   return (
-    <>
-      {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="fixed top-4 left-4 z-50 p-2 bg-black text-white rounded-xl hover:bg-pink-500 transition md:hidden"
-        >
-          <FiMenu size={24} />
-        </button>
-      )}
-
-      <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-gradient-to-b from-black to-gray-900 text-white z-40 px-6 py-8 border-r border-gray-800 shadow-xl transition-transform duration-300 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-lg font-semibold text-pink-400 truncate max-w-[80%]">
-            👋 {user?.fullName}
-          </h2>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="text-white hover:text-pink-400 md:hidden"
+    <header className="bg-[#2C1A4D] text-white shadow-lg fixed w-full z-50">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        
+        {/* USER PIC AND WELCOME MESSAGE - Now on the left */}
+        {user && (
+          <div
+            className="flex items-center gap-3 cursor-pointer order-1"
+            onClick={handleProfileClick}
           >
-            <FiX size={22} />
-          </button>
+            <img
+              src={user.pp?.startsWith('http') ? user.pp : `http://localhost:3001${user.pp}`}
+              alt="Profile"
+              className="w-14 h-14 rounded-full border-2 border-[#7E57C2] object-cover hover:scale-110 transition duration-300"
+            />
+            <span className="text-lg font-medium text-white">
+              Welcome, {user.fullName}
+            </span>
+          </div>
+        )}
+
+        {/* LOGO + SITE NAME - Now on the right */}
+        <div className="flex items-center gap-3 order-2">
+           
+          {/* Fade-in Animation for 'Epowrite' */}
+          <h1 className="text-xl md:text-2xl font-extrabold uppercase text-[#7E57C2] tracking-wide animate-fadein">
+            Epowrite
+          </h1>
         </div>
 
-        <nav className="space-y-5 text-base font-medium">
-          <Link to="/home" className="flex items-center gap-3 hover:text-pink-400 transition">
-            <FiHome /> Home
+        {/* DESKTOP NAV */}
+        <nav className="hidden md:flex items-center gap-6 text-base font-semibold uppercase order-3">
+          <Link to="/home" className="bg-[#7E57C2] px-4 py-2 rounded shadow text-white hover:bg-[#6C45B5] transition">
+            <FiHome className="inline mr-1" /> Home
           </Link>
-          <Link to="/dashboard" className="flex items-center gap-3 hover:text-pink-400 transition">
-            <FiUser /> My Account
-          </Link>
-          <Link to="/profile" className="flex items-center gap-3 hover:text-pink-400 transition">
-            <FiSettings /> Profile
+          <Link to="/dashboard" className="bg-[#7E57C2] px-4 py-2 rounded shadow text-white hover:bg-[#6C45B5] transition">
+            <FiUser className="inline mr-1" /> My Account
           </Link>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 text-red-500 hover:text-red-700 transition"
+            className="bg-red-500 px-4 py-2 rounded shadow text-white hover:bg-red-600 transition"
           >
-            <FiLogOut /> Logout
+            <FiLogOut className="inline mr-1" /> Logout
           </button>
         </nav>
-      </aside>
-    </>
+
+        {/* HAMBURGER ICON */}
+        <div className="md:hidden order-4">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="text-white hover:text-[#7E57C2] transition"
+          >
+            {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+          </button>
+        </div>
+      </div>
+
+      {/* MOBILE MENU */}
+      {isOpen && (
+        <div className="md:hidden bg-[#2C1A4D] text-white px-4 pb-4 space-y-3">
+          <Link to="/home" onClick={() => setIsOpen(false)} className="block bg-[#7E57C2] px-4 py-2 rounded shadow hover:bg-[#6C45B5] transition">
+            <FiHome className="inline mr-2" /> Home
+          </Link>
+          <Link to="/dashboard" onClick={() => setIsOpen(false)} className="block bg-[#7E57C2] px-4 py-2 rounded shadow hover:bg-[#6C45B5] transition">
+            <FiUser className="inline mr-2" /> My Account
+          </Link>
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              handleLogout();
+            }}
+            className="block bg-red-500 px-4 py-2 rounded shadow hover:bg-red-600 transition w-full text-left"
+          >
+            <FiLogOut className="inline mr-2" /> Logout
+          </button>
+        </div>
+      )}
+    </header>
   );
 };
 
-export default HamburgerMenu;
+export default Hamburger;
