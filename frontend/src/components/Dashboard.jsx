@@ -14,7 +14,8 @@ const Dashboard = () => {
   const [commentText, setCommentText] = useState('');
   const [userLikes, setUserLikes] = useState(new Set());
   const [showComments, setShowComments] = useState(null);
-  const [showMenu, setShowMenu] = useState(null); // state for showing the edit/delete menu
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showOptions, setShowOptions] = useState(null);
 
   useEffect(() => {
     const fetchProfileAndPosts = async () => {
@@ -133,18 +134,19 @@ const Dashboard = () => {
       const updated = await axios.get('http://localhost:3001/api/posts');
       setPosts(updated.data.filter(post => post.author === author));
       setTimeout(() => setNotification(''), 3000);
+      setIsModalOpen(false); // Close the modal after submit
     } catch (err) {
       console.error('Error posting:', err);
     }
   };
 
   const handleEdit = (post) => {
-    setShowForm(true);
     setTitle(post.title);
     setDescription(post.description);
     setPreview(`http://localhost:3001/${post.media}`);
     setSelectedPostId(post._id);
     setMedia(null);
+    setIsModalOpen(true); // Open the modal for editing
   };
 
   const handleDelete = async (postId) => {
@@ -153,9 +155,14 @@ const Dashboard = () => {
       const updated = await axios.get('http://localhost:3001/api/posts');
       setPosts(updated.data.filter(post => post.author === author));
       setSelectedPostId(null);
+      setShowOptions(null); // Close options after delete
     } catch (err) {
       console.error('Error deleting:', err);
     }
+  };
+
+  const handleOptionsToggle = (postId) => {
+    setShowOptions(prev => (prev === postId ? null : postId));
   };
 
   return (
@@ -185,139 +192,156 @@ const Dashboard = () => {
           </div>
         )}
 
-        {showForm && (
-          <form
-            onSubmit={handleSubmit}
-            className="bg-white border border-gray-300 p-6 rounded-lg shadow-lg space-y-4 w-full"
-          >
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Title"
-              required
-              className="w-full p-3 border border-gray-300 rounded-lg"
-            />
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="What's on your mind?"
-              required
-              rows="6"
-              className="w-full p-3 border border-gray-300 rounded-lg"
-            />
-            <input
-              type="file"
-              onChange={handleImageChange}
-              className="w-full p-3 border border-gray-300 rounded-lg"
-            />
-            {preview && (
-              <div className="relative">
-                <img src={preview} alt="Preview" className="w-full mt-4 rounded-lg" />
+        {/* Modal for editing a post */}
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-80 flex justify-center items-center z-20 transition-opacity duration-300 opacity-92">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg transform transition-transform duration-300 translate-y-0 opacity-100">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="absolute top-2 right-2 text-purple-500 hover:text-purple-700"
+              >
+                X
+              </button>
+              <h3 className="text-xl font-semibold mb-4">Edit Post</h3>
+
+              {/* Image preview with the option to remove it */}
+              {preview && (
+                <div className="mb-4">
+                  <img src={preview} alt="Preview" className="w-full h-auto rounded-lg mb-2" />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="text-red-500 mt-2"
+                  >
+                    Remove Image
+                  </button>
+                </div>
+              )}
+
+              {/* Form fields */}
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Title"
+                  required
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                />
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Description"
+                  required
+                  rows="6" // Increased height for the description
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                />
+                <input
+                  type="file"
+                  onChange={handleImageChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                />
+                <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                  Submit
+                </button>
                 <button
                   type="button"
-                  onClick={handleRemoveImage}
-                  className="absolute top-0 right-0 bg-red-600 text-white p-2 rounded-full"
+                  onClick={() => setIsModalOpen(false)} // Back button to close the modal
+                  className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 mt-4"
                 >
-                  ✖
+                  Back
                 </button>
-              </div>
-            )}
-            <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
-              Submit
-            </button>
-          </form>
+              </form>
+            </div>
+          </div>
         )}
 
+        {/* Post list */}
         <div className="w-full mt-8 space-y-6">
           {posts.map((post) => (
-            <div key={post._id} className="bg-white p-6 rounded-lg shadow-lg mb-6">
+            <div key={post._id} className="bg-white p-6 rounded-lg shadow-lg mb-6 relative">
               <div className="flex items-center gap-4 mb-4">
                 <p className="font-semibold text-lg text-gray-800">{post.author}</p>
                 <p className="text-sm text-gray-500">{new Date(post.createdAt).toLocaleString()}</p>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOptionsToggle(post._id);
+                  }}
+                  className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
+                >
+                  ...
+                </button>
+                {showOptions === post._id && (
+                  <div className="absolute top-10 right-4 bg-white border shadow-lg rounded-lg">
+                    <button
+                      onClick={() => handleEdit(post)}
+                      className="block w-full text-left px-4 py-2 text-blue-600 hover:bg-blue-50"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(post._id)}
+                      className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
               </div>
 
-              <h3 className="text-2xl font-semibold text-gray-900 mb-2">{post.title}</h3>
-              <p className="text-lg text-gray-700 mb-4">{post.description}</p>
-
-              {post.media && isImage(post.media) && (
-                <img
-                  src={`http://localhost:3001/${post.media}`}
-                  alt="Post Media"
-                  className="w-full h-auto rounded-lg shadow-md"
-                />
+              {/* Post content */}
+              <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
+              <p className="text-gray-700 mb-4">{post.description}</p>
+              {isImage(post.media) && (
+                <img src={`http://localhost:3001/${post.media}`} alt="Post Media" className="w-full h-auto mb-4 rounded-lg" />
               )}
 
-              <div className="flex justify-between items-center mt-6">
-                <div className="flex gap-6 text-gray-500">
-                  <button
-                    className={`flex items-center gap-2 ${userLikes.has(post._id) ? 'text-pink-500' : 'hover:text-pink-500'} transition`}
-                    onClick={() => handleLike(post._id)}
-                  >
-                    Like ({post.likes.length})
-                  </button>
-                  <button
-                    className="flex items-center gap-2 hover:text-pink-500 transition"
-                    onClick={() => handleShowComments(post._id)}
-                  >
-                    Comments ({post.comments.length})
-                  </button>
-                </div>
+              <div className="flex justify-between items-center">
                 <button
-                  className="flex items-center gap-2 hover:text-pink-500 transition"
+                  onClick={() => handleLike(post._id)}
+                  className={`text-gray-700 ${userLikes.has(post._id) ? 'font-semibold text-blue-600' : ''}`}
+                >
+                  {userLikes.has(post._id) ? 'Unlike' : 'Like'}
+                </button>
+                <button
                   onClick={() => handleShare(post._id)}
+                  className="text-gray-600 hover:text-gray-800"
                 >
                   Share
                 </button>
-
-                {/* Ellipsis Menu */}
-                <div className="relative">
-                  <button
-                    onClick={() => setShowMenu(showMenu === post._id ? null : post._id)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    &#8230;
-                  </button>
-                  {showMenu === post._id && (
-                    <div className="absolute right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg p-2">
-                      <button
-                        className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-lg"
-                        onClick={() => handleEdit(post)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-lg"
-                        onClick={() => handleDelete(post._id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <button
+                  onClick={() => handleShowComments(post._id)}
+                  className="text-gray-600 hover:text-gray-800"
+                >
+                  {showComments === post._id ? 'Hide Comments' : 'Show Comments'}
+                </button>
               </div>
 
+              {/* Comments */}
               {showComments === post._id && (
-                <div className="mt-6">
-                  <textarea
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="Write a comment..."
-                    rows="3"
-                    className="w-full p-3 border border-gray-300 rounded-lg mb-4"
-                  />
-                  <button
-                    onClick={() => handleCommentSubmit(post._id)}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
-                  >
-                    Add Comment
-                  </button>
+                <div className="mt-4 space-y-4">
                   {post.comments.map((comment, index) => (
-                    <div key={index} className="bg-gray-100 p-4 rounded-lg mt-4">
+                    <div key={index} className="p-3 bg-gray-100 rounded-lg">
                       <p className="font-semibold">{comment.user}</p>
-                      <p className="text-gray-600">{comment.comment}</p>
+                      <p>{comment.comment}</p>
                     </div>
                   ))}
+                  <div className="mt-4">
+                    <textarea
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      placeholder="Add a comment..."
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                    />
+                    <button
+                      onClick={() => handleCommentSubmit(post._id)}
+                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition mt-2"
+                    >
+                      Add Comment
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

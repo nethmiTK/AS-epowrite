@@ -7,7 +7,6 @@ const CreatePost = () => {
   const [description, setDescription] = useState('');
   const [media, setMedia] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [showForm, setShowForm] = useState(false);
   const [notification, setNotification] = useState('');
   const [author, setAuthor] = useState('');
   const [selectedPostId, setSelectedPostId] = useState(null);
@@ -126,7 +125,6 @@ const CreatePost = () => {
       setDescription('');
       setMedia(null);
       setPreview(null);
-      setShowForm(false);
       setSelectedPostId(null);
 
       const updated = await axios.get('http://localhost:3001/api/posts');
@@ -138,7 +136,6 @@ const CreatePost = () => {
   };
 
   const handleEdit = (post) => {
-    setShowForm(true);
     setTitle(post.title);
     setDescription(post.description);
     setPreview(`http://localhost:3001/${post.media}`);
@@ -160,99 +157,74 @@ const CreatePost = () => {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 px-4 py-6 sm:px-6 lg:px-8 pt-40">
       <div className="max-w-3xl mx-auto flex flex-col items-center justify-center">
-        <div className="mb-6">
-          <button
-            onClick={() => {
-              setShowForm(!showForm);
-              if (!showForm) {
-                setTitle('');
-                setDescription('');
-                setMedia(null);
-                setPreview(null);
-                setSelectedPostId(null);
-              }
-            }}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
-          >
-            {showForm ? 'Cancel' : 'Create Post'}
-          </button>
-        </div>
-
         {notification && (
           <div className="mb-4 p-3 bg-green-100 border border-green-600 text-green-600 rounded text-sm">
             {notification}
           </div>
         )}
 
-{showForm && (
-          <form onSubmit={handleSubmit} className="w-full bg-white p-6 rounded-lg shadow-md">
+        <form onSubmit={handleSubmit} className="w-full bg-white p-6 rounded-lg shadow-md mb-10">
+          <div className="mb-4">
+            <label htmlFor="title" className="block text-sm font-semibold text-gray-800">Title</label>
+            <input
+              type="text"
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              className="mt-2 p-2 w-full border rounded-md shadow-sm"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="description" className="block text-sm font-semibold text-gray-800">Description</label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+              className="mt-2 p-2 w-full border rounded-md shadow-sm"
+              rows="4"
+            ></textarea>
+          </div>
+
+          {preview && (
             <div className="mb-4">
-              <label htmlFor="title" className="block text-sm font-semibold text-gray-800">Title</label>
+              <img src={preview} alt="Preview" className="max-w-full h-auto rounded-md" />
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="text-red-500 mt-2"
+              >
+                Remove Image
+              </button>
+            </div>
+          )}
+
+          {!preview && (
+            <div className="mb-4">
+              <label htmlFor="media" className="block text-sm font-semibold text-gray-800">Upload Image</label>
               <input
-                type="text"
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                className="mt-2 p-2 w-full border rounded-md shadow-sm"
+                type="file"
+                id="media"
+                onChange={handleImageChange}
+                accept="image/*"
+                className="mt-2"
               />
             </div>
+          )}
 
-            <div className="mb-4">
-              <label htmlFor="description" className="block text-sm font-semibold text-gray-800">Description</label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-                className="mt-2 p-2 w-full border rounded-md shadow-sm"
-                rows="4"
-              ></textarea>
-            </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+          >
+            {selectedPostId ? 'Update Post' : 'Create Post'}
+          </button>
+        </form>
 
-            {preview && (
-              <div className="mb-4">
-                <img src={preview} alt="Preview" className="max-w-full h-auto rounded-md" />
-                <button
-                  type="button"
-                  onClick={handleRemoveImage}
-                  className="text-red-500 mt-2"
-                >
-                  Remove Image
-                </button>
-              </div>
-            )}
-
-            {!preview && (
-              <div className="mb-4">
-                <label htmlFor="media" className="block text-sm font-semibold text-gray-800">Upload Image</label>
-                <input
-                  type="file"
-                  id="media"
-                  onChange={handleImageChange}
-                  accept="image/*"
-                  className="mt-2"
-                />
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
-            >
-              {selectedPostId ? 'Update Post' : 'Create Post'}
-            </button>
-          </form>
-        )}
- 
-
-             
-
-            
-         
-        </div>
+        {/* You can render your posts list below here if needed */}
       </div>
-   
+    </div>
   );
 };
 
