@@ -100,7 +100,7 @@ const HomePage = () => {
 
   return (
     <div className="w-full bg-gray-100 min-h-screen px-0">
-      <div className="w-full px-4 md:px-12 lg:px-24 mt-8">
+      <div className="w-full px-4 md:px-12 lg:px-24 mt-26 mb-26">
         <h2 className="text-4xl font-semibold mb-6 text-gray-800 text-center">All Posts</h2>
 
         {/* Search Bar */}

@@ -11,9 +11,9 @@ const Dashboard = () => {
   const [notification, setNotification] = useState('');
   const [author, setAuthor] = useState('');
   const [selectedPostId, setSelectedPostId] = useState(null);
-  const [commentText, setCommentText] = useState(''); // Store the comment input text
-  const [userLikes, setUserLikes] = useState(new Set()); // Track the posts that the user has liked
-  const [showComments, setShowComments] = useState(null); // Track which post's comments are being displayed
+  const [commentText, setCommentText] = useState('');
+  const [userLikes, setUserLikes] = useState(new Set());
+  const [showComments, setShowComments] = useState(null);
 
   useEffect(() => {
     const fetchProfileAndPosts = async () => {
@@ -64,7 +64,7 @@ const Dashboard = () => {
     try {
       const res = await axios.post(`http://localhost:3001/api/posts/${postId}/comment`, {
         comment: commentText,
-        user: author,  // Ensure the correct username is saved with the comment
+        user: author,
       });
       setPosts(posts.map(post =>
         post._id === postId ? res.data : post
@@ -76,7 +76,7 @@ const Dashboard = () => {
   };
 
   const handleShowComments = (postId) => {
-    setShowComments(prev => prev === postId ? null : postId);  // Toggle the visibility of comments
+    setShowComments(prev => prev === postId ? null : postId);
   };
 
   const handleShare = (postId) => {
@@ -84,7 +84,6 @@ const Dashboard = () => {
     alert('Post link copied to clipboard!');
   };
 
-  // Helper function to check if the file is an image or video
   const isImage = (url) => {
     return url.match(/\.(jpg|jpeg|png|gif)$/);
   };
@@ -144,7 +143,7 @@ const Dashboard = () => {
     setDescription(post.description);
     setPreview(`http://localhost:3001/${post.media}`);
     setSelectedPostId(post._id);
-    setMedia(null);  // Remove media from form data when editing
+    setMedia(null);
   };
 
   const handleDelete = async (postId) => {
@@ -159,9 +158,9 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black px-4 py-6 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto flex flex-col items-center justify-center">
-        <div className="mb-4">
+    <div className="min-h-screen bg-gray-50 text-gray-900 px-4 py-6 sm:px-6 lg:px-8 pt-40">
+      <div className="max-w-3xl mx-auto flex flex-col items-center justify-center">
+        <div className="mb-6">
           <button
             onClick={() => {
               setShowForm(!showForm);
@@ -173,14 +172,14 @@ const Dashboard = () => {
                 setSelectedPostId(null);
               }
             }}
-            className="border border-black px-4 py-2 rounded hover:bg-black hover:text-white transition"
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
           >
             {showForm ? 'Cancel' : 'Create Post'}
           </button>
         </div>
 
         {notification && (
-          <div className="mb-4 p-3 border border-green-600 text-green-600 rounded text-sm">
+          <div className="mb-4 p-3 bg-green-100 border border-green-600 text-green-600 rounded text-sm">
             {notification}
           </div>
         )}
@@ -188,7 +187,7 @@ const Dashboard = () => {
         {showForm && (
           <form
             onSubmit={handleSubmit}
-            className="border border-black p-4 rounded space-y-4 mb-8 w-full"
+            className="bg-white border border-gray-300 p-6 rounded-lg shadow-lg space-y-4 w-full"
           >
             <input
               type="text"
@@ -196,7 +195,7 @@ const Dashboard = () => {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Title"
               required
-              className="w-full p-2 border border-black rounded"
+              className="w-full p-3 border border-gray-300 rounded-lg"
             />
             <textarea
               value={description}
@@ -204,36 +203,36 @@ const Dashboard = () => {
               placeholder="What's on your mind?"
               required
               rows="6"
-              className="w-full p-2 border border-black rounded"
+              className="w-full p-3 border border-gray-300 rounded-lg"
             />
             <input
               type="file"
               onChange={handleImageChange}
-              className="w-full p-2 border border-black rounded"
+              className="w-full p-3 border border-gray-300 rounded-lg"
             />
-            {preview && <img src={preview} alt="Preview" className="w-full mt-4" />}
-            <button type="submit" className="bg-black text-white px-4 py-2 rounded">
+            {preview && <img src={preview} alt="Preview" className="w-full mt-4 rounded-lg" />}
+            <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
               Submit
             </button>
           </form>
         )}
 
-        <div className="w-full">
+        <div className="w-full mt-8 space-y-6">
           {posts.map((post) => (
             <div key={post._id} className="bg-white p-6 rounded-lg shadow-lg mb-6">
               <div className="flex items-center gap-4 mb-4">
-                <p className="font-semibold text-gray-900">{post.author}</p>
+                <p className="font-semibold text-lg text-gray-800">{post.author}</p>
                 <p className="text-sm text-gray-500">{new Date(post.createdAt).toLocaleString()}</p>
               </div>
 
-              <h3 className="text-3xl font-semibold text-gray-900 mb-2">{post.title}</h3>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-2">{post.title}</h3>
               <p className="text-lg text-gray-700 mb-4">{post.description}</p>
 
               {post.media && isImage(post.media) && (
                 <img
                   src={`http://localhost:3001/${post.media}`}
                   alt="Post Media"
-                  className="w-full h-auto rounded-lg shadow-lg"
+                  className="w-full h-auto rounded-lg shadow-md"
                 />
               )}
 
@@ -243,50 +242,46 @@ const Dashboard = () => {
                     className={`flex items-center gap-2 ${userLikes.has(post._id) ? 'text-pink-500' : 'hover:text-pink-500'} transition`}
                     onClick={() => handleLike(post._id)}
                   >
-                    👍 Like ({post.likes.length})
+                    Like ({post.likes.length})
                   </button>
                   <button
                     className="flex items-center gap-2 hover:text-pink-500 transition"
                     onClick={() => handleShowComments(post._id)}
                   >
-                    💬 Comment ({post.comments.length})
-                  </button>
-                  <button
-                    className="flex items-center gap-2 hover:text-pink-500 transition"
-                    onClick={() => handleShare(post._id)}
-                  >
-                    🔗 Share
+                    Comments ({post.comments.length})
                   </button>
                 </div>
-
-                {showComments === post._id && (
-                  <div className="w-full mt-4">
-                    <div className="flex flex-col gap-4">
-                      {post.comments.map((comment, index) => (
-                        <div key={index} className="bg-gray-100 p-4 rounded">
-                          <p className="font-semibold">{comment.user}</p>
-                          <p>{comment.comment}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-4">
-                      <textarea
-                        value={commentText}
-                        onChange={(e) => setCommentText(e.target.value)}
-                        placeholder="Add a comment..."
-                        rows="3"
-                        className="w-full p-2 border border-black rounded"
-                      />
-                      <button
-                        onClick={() => handleCommentSubmit(post._id)}
-                        className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
-                      >
-                        Post Comment
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <button
+                  className="flex items-center gap-2 hover:text-pink-500 transition"
+                  onClick={() => handleShare(post._id)}
+                >
+                  Share
+                </button>
               </div>
+
+              {showComments === post._id && (
+                <div className="mt-6">
+                  <textarea
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    placeholder="Write a comment..."
+                    rows="3"
+                    className="w-full p-3 border border-gray-300 rounded-lg mb-4"
+                  />
+                  <button
+                    onClick={() => handleCommentSubmit(post._id)}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+                  >
+                    Add Comment
+                  </button>
+                  {post.comments.map((comment, index) => (
+                    <div key={index} className="bg-gray-100 p-4 rounded-lg mt-4">
+                      <p className="font-semibold">{comment.user}</p>
+                      <p className="text-gray-600">{comment.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
