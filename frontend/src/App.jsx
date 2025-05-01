@@ -12,6 +12,7 @@ import Profile from "./components/Profile";
 import Header from "./components/Header";
 import HamburgerMenu from "./components/HamburgerMenu";
 import A from './components/a'; // Adjust the path as needed
+import CreatePost from "./components/CreatePost";
 
 import "./index.css";
 
@@ -58,6 +59,8 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/home" element={<Home />} />
           <Route path="/a" element={<A />} />
+          <Route path="/create-post" element={<CreatePost />} />
+
           <Route path="/posts/:id" element={<PostDetails />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />

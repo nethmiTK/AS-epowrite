@@ -71,6 +71,9 @@ const Hamburger = ({ user }) => {
           <Link to="/dashboard" className="bg-purple-500 px-4 py-2 rounded shadow text-white hover:bg-purple-500 transition">
             <FiUser className="inline mr-1" /> My Account
           </Link>
+          <Link to="/create-post" className="bg-purple-500 px-4 py-2 rounded shadow text-white hover:bg-purple-400 transition">
+            Create Post
+          </Link>
           <button
             onClick={handleLogout}
             className="bg-red-300 px-4 py-2 rounded shadow text-purple hover:bg-red-600 transition"
@@ -98,6 +101,9 @@ const Hamburger = ({ user }) => {
           </Link>
           <Link to="/dashboard" onClick={() => setIsOpen(false)} className="block bg-pink-500 px-4 py-2 rounded shadow hover:bg-pink-600 transition">
             <FiUser className="inline mr-2" /> My Account
+          </Link>
+          <Link to="/create-post" onClick={() => setIsOpen(false)} className="block bg-pink-500 px-4 py-2 rounded shadow hover:bg-pink-600 transition">
+            Create Post
           </Link>
           <button
             onClick={() => {
