@@ -14,6 +14,7 @@ const Dashboard = () => {
   const [commentText, setCommentText] = useState('');
   const [userLikes, setUserLikes] = useState(new Set());
   const [showComments, setShowComments] = useState(null);
+  const [showMenu, setShowMenu] = useState(null); // state for showing the edit/delete menu
 
   useEffect(() => {
     const fetchProfileAndPosts = async () => {
@@ -210,7 +211,18 @@ const Dashboard = () => {
               onChange={handleImageChange}
               className="w-full p-3 border border-gray-300 rounded-lg"
             />
-            {preview && <img src={preview} alt="Preview" className="w-full mt-4 rounded-lg" />}
+            {preview && (
+              <div className="relative">
+                <img src={preview} alt="Preview" className="w-full mt-4 rounded-lg" />
+                <button
+                  type="button"
+                  onClick={handleRemoveImage}
+                  className="absolute top-0 right-0 bg-red-600 text-white p-2 rounded-full"
+                >
+                  ✖
+                </button>
+              </div>
+            )}
             <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
               Submit
             </button>
@@ -257,6 +269,32 @@ const Dashboard = () => {
                 >
                   Share
                 </button>
+
+                {/* Ellipsis Menu */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowMenu(showMenu === post._id ? null : post._id)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    &#8230;
+                  </button>
+                  {showMenu === post._id && (
+                    <div className="absolute right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg p-2">
+                      <button
+                        className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-lg"
+                        onClick={() => handleEdit(post)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded-lg"
+                        onClick={() => handleDelete(post._id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {showComments === post._id && (
