@@ -24,7 +24,7 @@
 /* Apply Fade-in animation */
 .animate-fadein {
   animation: fadeIn 2s ease-out forwards;
-  color: #7E57C2; /* Text color */
+  color:  bg-pink-500 px-4 py-2 rounded shadow; /* Text color */
 }
 
 
