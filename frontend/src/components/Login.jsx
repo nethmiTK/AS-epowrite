@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaLock } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import AnimatedBalls from '../components/AnimatedBalls'; // Ensure the correct path
+import logo from '../assets/epowrite.png';  // Import image here
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -52,6 +53,17 @@ const Login = () => {
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
       >
+        {/* Logo Section */}
+        <div className="flex justify-center mb-6">
+          <img
+            src={logo}  // Use the imported logo
+            alt="Logo"
+            
+            className="h-32 w-32 rounded-full" // Make the image round
+            // Adjust the size as needed
+          />
+        </div>
+
         <h2 className="text-4xl font-extrabold text-center text-darkGrey">
           Welcome Back
         </h2>
