@@ -169,21 +169,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-50 text-gray-900 px-4 py-6 sm:px-6 lg:px-8 pt-40">
       <div className="max-w-3xl mx-auto flex flex-col items-center justify-center">
         <div className="mb-6">
-          <button
-            onClick={() => {
-              setShowForm(!showForm);
-              if (!showForm) {
-                setTitle('');
-                setDescription('');
-                setMedia(null);
-                setPreview(null);
-                setSelectedPostId(null);
-              }
-            }}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
-          >
-            {showForm ? 'Cancel' : 'Create Post'}
-          </button>
+          
         </div>
 
         {notification && (
