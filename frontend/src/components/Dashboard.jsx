@@ -194,7 +194,7 @@ const Dashboard = () => {
 
         {/* Modal for editing a post */}
         {isModalOpen && (
-          <div className="fixed inset-0 bg-gray-900 bg-opacity-80 flex justify-center items-center z-20 transition-opacity duration-300 opacity-92">
+          <div className="fixed inset-0 bg-gray-900 bg-opacity- flex justify-center items-center z-20 transition-opacity duration-300 opacity-92">
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg transform transition-transform duration-300 translate-y-0 opacity-100">
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -291,55 +291,53 @@ const Dashboard = () => {
                 )}
               </div>
 
-              {/* Post content */}
-              <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
+                            {/* Post content */}
+                            <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
               <p className="text-gray-700 mb-4">{post.description}</p>
-              {isImage(post.media) && (
-                <img src={`http://localhost:3001/${post.media}`} alt="Post Media" className="w-full h-auto mb-4 rounded-lg" />
+              {post.media && isImage(post.media) && (
+                <img
+                  src={`http://localhost:3001/${post.media}`}
+                  alt="Post"
+                  className="w-full h-auto rounded-lg mb-4"
+                />
               )}
 
-              <div className="flex justify-between items-center">
-                <button
-                  onClick={() => handleLike(post._id)}
-                  className={`text-gray-700 ${userLikes.has(post._id) ? 'font-semibold text-blue-600' : ''}`}
-                >
-                  {userLikes.has(post._id) ? 'Unlike' : 'Like'}
+              {/* Actions */}
+              <div className="flex justify-between items-center text-sm text-gray-600">
+                <button onClick={() => handleLike(post._id)} className="hover:text-blue-600">
+                  {userLikes.has(post._id) ? '💙' : '🤍'} Like ({post.likes.length})
                 </button>
-                <button
-                  onClick={() => handleShare(post._id)}
-                  className="text-gray-600 hover:text-gray-800"
-                >
-                  Share
+                <button onClick={() => handleShowComments(post._id)} className="hover:text-blue-600">
+                  💬 Comments ({post.comments.length})
                 </button>
-                <button
-                  onClick={() => handleShowComments(post._id)}
-                  className="text-gray-600 hover:text-gray-800"
-                >
-                  {showComments === post._id ? 'Hide Comments' : 'Show Comments'}
+                <button onClick={() => handleShare(post._id)} className="hover:text-blue-600">
+                  🔗 Share
                 </button>
               </div>
 
-              {/* Comments */}
+              {/* Comments section */}
               {showComments === post._id && (
-                <div className="mt-4 space-y-4">
-                  {post.comments.map((comment, index) => (
-                    <div key={index} className="p-3 bg-gray-100 rounded-lg">
-                      <p className="font-semibold">{comment.user}</p>
-                      <p>{comment.comment}</p>
-                    </div>
-                  ))}
-                  <div className="mt-4">
-                    <textarea
+                <div className="mt-4">
+                  <div className="space-y-2">
+                    {post.comments.map((comment, index) => (
+                      <div key={index} className="bg-gray-100 p-2 rounded">
+                        <strong>{comment.user}:</strong> {comment.comment}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex items-center">
+                    <input
+                      type="text"
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
                       placeholder="Add a comment..."
-                      className="w-full p-3 border border-gray-300 rounded-lg"
+                      className="flex-grow p-2 border rounded mr-2"
                     />
                     <button
                       onClick={() => handleCommentSubmit(post._id)}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition mt-2"
+                      className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
                     >
-                      Add Comment
+                      Post
                     </button>
                   </div>
                 </div>
@@ -353,3 +351,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
