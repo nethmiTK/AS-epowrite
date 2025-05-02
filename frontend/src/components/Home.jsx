@@ -8,6 +8,7 @@ const HomePage = () => {
   const [userLikes, setUserLikes] = useState(new Set());
   const [commentTexts, setCommentTexts] = useState({});
   const [showComments, setShowComments] = useState(null);
+  const [expandedPosts, setExpandedPosts] = useState(new Set());
 
   useEffect(() => {
     const fetchData = async () => {
@@ -96,7 +97,19 @@ const HomePage = () => {
   };
 
   const generateProfilePicture = (username) => {
-    return username ? username.charAt(0).toUpperCase() : 'U'; // Default avatar as the first letter of the username
+    return username ? username.charAt(0).toUpperCase() : 'U';
+  };
+
+  const toggleDescription = (postId) => {
+    setExpandedPosts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
   };
 
   return (
@@ -130,7 +143,20 @@ const HomePage = () => {
                 </div>
 
                 <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
-                <p className="text-gray-700 mb-4">{post.description}</p>
+
+                <p className="text-gray-700 mb-2">
+                  {expandedPosts.has(post._id)
+                    ? post.description
+                    : post.description.slice(0, 150) + (post.description.length > 150 ? '...' : '')}
+                </p>
+                {post.description.length > 150 && (
+                  <button
+                    onClick={() => toggleDescription(post._id)}
+                    className="text-blue-500 hover:underline mb-4"
+                  >
+                    {expandedPosts.has(post._id) ? 'Show Less' : 'Show More'}
+                  </button>
+                )}
 
                 {post.media && isImage(post.media) && (
                   <img
@@ -143,9 +169,7 @@ const HomePage = () => {
                 <div className="mt-4">
                   <button
                     onClick={() => handleLike(post._id)}
-                    className={`p-2 rounded-full ${
-                      userLikes.has(post._id) ? 'bg-red-500 text-white' : 'bg-gray-200'
-                    }`}
+                    className={`p-2 rounded-full ${userLikes.has(post._id) ? 'bg-red-500 text-white' : 'bg-gray-200'}`}
                   >
                     ❤️ {post.likes.length}
                   </button>
@@ -168,12 +192,9 @@ const HomePage = () => {
                   <div className="mt-4 space-y-4">
                     {post.comments.map((comment, idx) => (
                       <div key={idx} className="flex items-center gap-4">
-                        {/* Profile Picture */}
                         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl">
                           {generateProfilePicture(comment.user)}
                         </div>
-
-                        {/* Commenter's Name and Comment */}
                         <div>
                           <div className="font-semibold text-sm">{comment.user}</div>
                           <p className="text-gray-700">{comment.comment}</p>
@@ -205,6 +226,6 @@ const HomePage = () => {
       </div>
     </div>
   );
-}
+};
 
 export default HomePage;
