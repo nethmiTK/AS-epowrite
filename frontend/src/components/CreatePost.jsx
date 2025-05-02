@@ -163,7 +163,7 @@ const CreatePost = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="w-full bg-white p-6 rounded-lg shadow-md mb-10">
+        <form onSubmit={handleSubmit} className="w-full bg-white p-6 rounded-lg shadow-md mb-10 max-w-lg mx-auto">
           <div className="mb-4">
             <label htmlFor="title" className="block text-sm font-semibold text-gray-800">Title</label>
             <input
@@ -183,20 +183,20 @@ const CreatePost = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              className="mt-2 p-2 w-full border rounded-md shadow-sm"
-              rows="4"
+              className="mt-2 p-2 w-full border rounded-md shadow-sm resize-y max-h-48 overflow-auto"
+              rows="140"
             ></textarea>
           </div>
 
           {preview && (
-            <div className="mb-4">
+            <div className="mb-4 relative">
               <img src={preview} alt="Preview" className="max-w-full h-auto rounded-md" />
               <button
                 type="button"
                 onClick={handleRemoveImage}
-                className="text-red-500 mt-2"
+                className="absolute top-0 right-0 bg-red-100 text-white p-2 rounded-full hover:bg-red-600"
               >
-                Remove Image
+                <i className="fas fa-times">❌</i> {/* FontAwesome Close Icon */}
               </button>
             </div>
           )}

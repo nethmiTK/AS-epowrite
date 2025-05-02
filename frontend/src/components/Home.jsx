@@ -95,92 +95,114 @@ const HomePage = () => {
       .catch(err => console.error('Failed to copy link:', err));
   };
 
+  const generateProfilePicture = (username) => {
+    return username ? username.charAt(0).toUpperCase() : 'U'; // Default avatar as the first letter of the username
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-10 pt-40 text-gray-800">
-      <div className="min-h-screen bg-gray-100 px-4 py-10 pt-40 text-gray-800">
-  <div className="max-w-4xl mx-auto">
-    <input
-      type="text"
-      placeholder="Search posts by title..."
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-      className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm"
-    />
+      <div className="max-w-4xl mx-auto">
+        <input
+          type="text"
+          placeholder="Search posts by title..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm"
+        />
 
-    <div className="space-y-6">
-      {filteredPosts.map((post) => {
-        const isLiked = userLikes.has(post._id);
-        const authorInitial = post.author ? post.author.charAt(0).toUpperCase() : 'U';
+        <div className="space-y-6">
+          {filteredPosts.map((post) => {
+            const isLiked = userLikes.has(post._id);
+            const authorInitial = post.author ? post.author.charAt(0).toUpperCase() : 'U';
 
-        return (
-          <div key={post._id} className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex justify-between items-center mb-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-                  {authorInitial}
-                </div>
-                <div>
-                  <p className="font-semibold text-lg text-gray-800">{post.author}</p>
-                  <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p>
-                </div>
-              </div>
-            </div>
-
-            <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
-            <p className="text-gray-700 mb-4">{post.description}</p>
-
-            {post.media && isImage(post.media) && (
-              <img
-                src={`http://localhost:3001/${post.media}`}
-                alt="Post"
-                className="w-full h-auto rounded-lg mb-4"
-              />
-            )}
-
-            <div className="flex justify-between items-center text-sm text-gray-600">
-              <button onClick={() => handleLike(post._id)} className="hover:text-blue-600">
-                {isLiked ? '💙' : '🤍'} Like ({post.likes.length})
-              </button>
-              <button onClick={() => handleShowComments(post._id)} className="hover:text-blue-600">
-                💬 Comments ({post.comments.length})
-              </button>
-              <button onClick={() => handleShare(post._id)} className="hover:text-blue-600">
-                🔗 Share
-              </button>
-            </div>
-
-            {showComments === post._id && (
-              <div className="mt-4">
-                <div className="space-y-2">
-                  {post.comments.map((comment, index) => (
-                    <div key={index} className="bg-gray-100 p-2 rounded">
-                      <strong>{comment.user}:</strong> {comment.comment}
+            return (
+              <div key={post._id} className="bg-white p-6 rounded-lg shadow-md">
+                <div className="flex justify-between items-center mb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                      {authorInitial}
                     </div>
-                  ))}
+                    <div>
+                      <p className="font-semibold text-lg text-gray-800">{post.author}</p>
+                      <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-2 flex items-center">
-                  <input
-                    type="text"
-                    value={commentTexts[post._id] || ''}
-                    onChange={(e) => handleCommentChange(post._id, e.target.value)}
-                    placeholder="Add a comment..."
-                    className="flex-grow p-2 border rounded mr-2"
+
+                <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
+                <p className="text-gray-700 mb-4">{post.description}</p>
+
+                {post.media && isImage(post.media) && (
+                  <img
+                    src={`http://localhost:3001/${post.media}`}
+                    alt="Post"
+                    className="w-full h-auto rounded-lg mb-4"
                   />
+                )}
+
+                <div className="mt-4">
                   <button
-                    onClick={() => handleCommentSubmit(post._id)}
-                    className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
+                    onClick={() => handleLike(post._id)}
+                    className={`p-2 rounded-full ${
+                      userLikes.has(post._id) ? 'bg-red-500 text-white' : 'bg-gray-200'
+                    }`}
                   >
-                    Post
+                    ❤️ {post.likes.length}
+                  </button>
+                  <button
+                    onClick={() => handleShowComments(post._id)}
+                    className="ml-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300"
+                  >
+                    💬 {post.comments.length}
+                  </button>
+                  <button
+                    onClick={() => handleShare(post._id)}
+                    className="ml-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300"
+                  >
+                    📤 Share
                   </button>
                 </div>
+
+                {/* Comments */}
+                {showComments === post._id && (
+                  <div className="mt-4 space-y-4">
+                    {post.comments.map((comment, idx) => (
+                      <div key={idx} className="flex items-center gap-4">
+                        {/* Profile Picture */}
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl">
+                          {generateProfilePicture(comment.user)}
+                        </div>
+
+                        {/* Commenter's Name and Comment */}
+                        <div>
+                          <div className="font-semibold text-sm">{comment.user}</div>
+                          <p className="text-gray-700">{comment.comment}</p>
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="flex items-center mt-4">
+                      <input
+                        type="text"
+                        value={commentTexts[post._id] || ''}
+                        onChange={(e) => handleCommentChange(post._id, e.target.value)}
+                        placeholder="Add a comment"
+                        className="flex-1 p-2 border border-gray-300 rounded-lg"
+                      />
+                      <button
+                        onClick={() => handleCommentSubmit(post._id)}
+                        className="ml-2 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                      >
+                        Submit
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  </div>
-</div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

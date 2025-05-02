@@ -320,35 +320,42 @@ const Dashboard = () => {
                 </button>
               </div>
 
-              {/* Comments */}
-              {showComments === post._id && (
-                <div className="mt-4 space-y-4">
-                  {post.comments.map((comment, idx) => (
-                    <div key={idx} className="flex items-center gap-4">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl">
-                        {generateProfilePicture(comment.user)}
-                      </div>
-                      <p className="text-gray-700">{comment.comment}</p>
-                    </div>
-                  ))}
+             {/* Comments */}
+{showComments === post._id && (
+  <div className="mt-4 space-y-4">
+    {post.comments.map((comment, idx) => (
+      <div key={idx} className="flex items-center gap-4">
+        {/* Profile Picture */}
+        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl">
+          {generateProfilePicture(comment.user)} {/* Use the commenter's profile picture */}
+        </div>
 
-                  <div className="flex items-center mt-4">
-                    <input
-                      type="text"
-                      value={commentText}
-                      onChange={(e) => setCommentText(e.target.value)}
-                      placeholder="Add a comment"
-                      className="flex-1 p-2 border border-gray-300 rounded-lg"
-                    />
-                    <button
-                      onClick={() => handleCommentSubmit(post._id)}
-                      className="ml-2 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                    >
-                      Submit
-                    </button>
-                  </div>
-                </div>
-              )}
+        {/* Commenter's Name and Comment */}
+        <div>
+          <div className="font-semibold text-sm">{comment.user}</div> {/* Commenter's Username */}
+          <p className="text-gray-700">{comment.comment}</p> {/* Comment Text */}
+        </div>
+      </div>
+    ))}
+
+    <div className="flex items-center mt-4">
+      <input
+        type="text"
+        value={commentText}
+        onChange={(e) => setCommentText(e.target.value)}
+        placeholder="Add a comment"
+        className="flex-1 p-2 border border-gray-300 rounded-lg"
+      />
+      <button
+        onClick={() => handleCommentSubmit(post._id)}
+        className="ml-2 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+      >
+        Submit
+      </button>
+    </div>
+  </div>
+)}
+
             </div>
           ))}
         </div>
