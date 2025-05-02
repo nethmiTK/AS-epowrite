@@ -165,12 +165,16 @@ const Dashboard = () => {
     setShowOptions(prev => (prev === postId ? null : postId));
   };
 
+  // Function to generate profile picture (first letter of author's name)
+  const generateProfilePicture = (name) => {
+    return name ? name.charAt(0).toUpperCase() : '';
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 px-4 py-6 sm:px-6 lg:px-8 pt-40">
       <div className="max-w-3xl mx-auto flex flex-col items-center justify-center">
-        <div className="mb-6">
-          
-        </div>
+         
+        
 
         {notification && (
           <div className="mb-4 p-3 bg-green-100 border border-green-600 text-green-600 rounded text-sm">
@@ -247,6 +251,9 @@ const Dashboard = () => {
           {posts.map((post) => (
             <div key={post._id} className="bg-white p-6 rounded-lg shadow-lg mb-6 relative">
               <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl">
+                  {generateProfilePicture(post.author)}
+                </div>
                 <p className="font-semibold text-lg text-gray-800">{post.author}</p>
                 <p className="text-sm text-gray-500">{new Date(post.createdAt).toLocaleString()}</p>
 
@@ -255,75 +262,89 @@ const Dashboard = () => {
                     e.stopPropagation();
                     handleOptionsToggle(post._id);
                   }}
-                  className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
                 >
-                  ...
+                  &#8226;&#8226;&#8226;
                 </button>
+
+                {/* Options */}
                 {showOptions === post._id && (
-                  <div className="absolute top-10 right-4 bg-white border shadow-lg rounded-lg">
+                  <div className="absolute top-12 right-2 bg-white border border-gray-300 rounded-lg shadow-lg p-2">
                     <button
                       onClick={() => handleEdit(post)}
-                      className="block w-full text-left px-4 py-2 text-blue-600 hover:bg-blue-50"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(post._id)}
-                      className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50"
+                      className="block px-4 py-2 text-red-500 hover:bg-red-100"
                     >
                       Delete
                     </button>
                   </div>
                 )}
               </div>
+              <h2 className="text-xl font-semibold text-gray-800">{post.title}</h2>
+              <p className="text-gray-700 mt-2">{post.description}</p>
 
-                            {/* Post content */}
-                            <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
-              <p className="text-gray-700 mb-4">{post.description}</p>
+              {/* Media preview */}
               {post.media && isImage(post.media) && (
                 <img
                   src={`http://localhost:3001/${post.media}`}
-                  alt="Post"
-                  className="w-full h-auto rounded-lg mb-4"
+                  alt="Post media"
+                  className="mt-4 max-w-full h-auto rounded-lg"
                 />
               )}
 
-              {/* Actions */}
-              <div className="flex justify-between items-center text-sm text-gray-600">
-                <button onClick={() => handleLike(post._id)} className="hover:text-blue-600">
-                  {userLikes.has(post._id) ? '💙' : '🤍'} Like ({post.likes.length})
+              <div className="mt-4">
+                <button
+                  onClick={() => handleLike(post._id)}
+                  className={`p-2 rounded-full ${
+                    userLikes.has(post._id) ? 'bg-red-500 text-white' : 'bg-gray-200'
+                  }`}
+                >
+                  ❤️ {post.likes.length}
                 </button>
-                <button onClick={() => handleShowComments(post._id)} className="hover:text-blue-600">
-                  💬 Comments ({post.comments.length})
+                <button
+                  onClick={() => handleShowComments(post._id)}
+                  className="ml-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300"
+                >
+                  💬 {post.comments.length}
                 </button>
-                <button onClick={() => handleShare(post._id)} className="hover:text-blue-600">
-                  🔗 Share
+                <button
+                  onClick={() => handleShare(post._id)}
+                  className="ml-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300"
+                >
+                  📤 Share
                 </button>
               </div>
 
-              {/* Comments section */}
+              {/* Comments */}
               {showComments === post._id && (
-                <div className="mt-4">
-                  <div className="space-y-2">
-                    {post.comments.map((comment, index) => (
-                      <div key={index} className="bg-gray-100 p-2 rounded">
-                        <strong>{comment.user}:</strong> {comment.comment}
+                <div className="mt-4 space-y-4">
+                  {post.comments.map((comment, idx) => (
+                    <div key={idx} className="flex items-center gap-4">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl">
+                        {generateProfilePicture(comment.user)}
                       </div>
-                    ))}
-                  </div>
-                  <div className="mt-2 flex items-center">
+                      <p className="text-gray-700">{comment.comment}</p>
+                    </div>
+                  ))}
+
+                  <div className="flex items-center mt-4">
                     <input
                       type="text"
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
-                      placeholder="Add a comment..."
-                      className="flex-grow p-2 border rounded mr-2"
+                      placeholder="Add a comment"
+                      className="flex-1 p-2 border border-gray-300 rounded-lg"
                     />
                     <button
                       onClick={() => handleCommentSubmit(post._id)}
-                      className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
+                      className="ml-2 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                     >
-                      Post
+                      Submit
                     </button>
                   </div>
                 </div>
@@ -337,4 +358,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
