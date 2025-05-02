@@ -1,120 +1,87 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Pencil, Trash2, Check } from 'lucide-react';
 
 const A = () => {
   const [posts, setPosts] = useState([]);
-  const [profile, setProfile] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [userLikes, setUserLikes] = useState(new Set());
-  const [commentTexts, setCommentTexts] = useState({});
-  const [showComments, setShowComments] = useState(null);
-  const [expandedPosts, setExpandedPosts] = useState(new Set());
+  const [editMode, setEditMode] = useState({});
+  const [editedPostData, setEditedPostData] = useState({});
+  const [showMoreMap, setShowMoreMap] = useState({});
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const resPosts = await axios.get('http://localhost:3001/api/posts');
-        setPosts(resPosts.data);
-
-        const token = localStorage.getItem('token');
-        if (token) {
-          const resProfile = await axios.get('http://localhost:3001/api/users/profile', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setProfile(resProfile.data);
-        }
-      } catch (err) {
-        console.error('Error fetching data:', err);
-      }
-    };
-    fetchData();
+    fetchPosts();
   }, []);
 
-  const isImage = (filename) => {
-    return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(filename);
+  const fetchPosts = async () => {
+    try {
+      const res = await axios.get('http://localhost:3001/api/posts');
+      setPosts(res.data);
+    } catch (err) {
+      console.error('Error fetching posts:', err);
+    }
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString(); // includes both date and time
+  const handleDelete = async (postId) => {
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      try {
+        await axios.delete(`http://localhost:3001/api/posts/${postId}`);
+        setPosts(posts.filter(post => post._id !== postId));
+      } catch (err) {
+        console.error('Error deleting post:', err);
+      }
+    }
+  };
+
+  const handleEditToggle = (post) => {
+    setEditMode((prev) => ({ ...prev, [post._id]: !prev[post._id] }));
+    setEditedPostData((prev) => ({
+      ...prev,
+      [post._id]: { title: post.title, description: post.description },
+    }));
+  };
+
+  const handleEditChange = (postId, field, value) => {
+    setEditedPostData((prev) => ({
+      ...prev,
+      [postId]: {
+        ...prev[postId],
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleEditSave = async (postId) => {
+    try {
+      const updatedData = editedPostData[postId];
+      const res = await axios.put(`http://localhost:3001/api/posts/${postId}`, updatedData);
+      setPosts(posts.map(post => post._id === postId ? res.data : post));
+      setEditMode((prev) => ({ ...prev, [postId]: false }));
+    } catch (err) {
+      console.error('Error updating post:', err);
+    }
+  };
+
+  const toggleShowMore = (postId) => {
+    setShowMoreMap((prev) => ({
+      ...prev,
+      [postId]: !prev[postId],
+    }));
   };
 
   const filteredPosts = posts.filter(post =>
     post.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleLike = async (postId) => {
-    if (!profile) return alert('You must be logged in to like posts');
-    try {
-      const res = await axios.post(
-        `http://localhost:3001/api/posts/${postId}/like`,
-        { userId: profile.fullName }
-      );
-
-      setPosts(posts.map(post => post._id === postId ? res.data : post));
-      setUserLikes(prev => {
-        const newLikes = new Set(prev);
-        if (newLikes.has(postId)) {
-          newLikes.delete(postId);
-        } else {
-          newLikes.add(postId);
-        }
-        return newLikes;
-      });
-    } catch (err) {
-      console.error('Error toggling like:', err);
-    }
-  };
-
-  const handleCommentChange = (postId, text) => {
-    setCommentTexts(prev => ({ ...prev, [postId]: text }));
-  };
-
-  const handleCommentSubmit = async (postId) => {
-    const text = commentTexts[postId]?.trim();
-    if (!text) return;
-    try {
-      const res = await axios.post(`http://localhost:3001/api/posts/${postId}/comment`, {
-        comment: text,
-        user: profile.fullName,
-      });
-      setPosts(posts.map(post => post._id === postId ? res.data : post));
-      setCommentTexts(prev => ({ ...prev, [postId]: '' }));
-    } catch (err) {
-      console.error('Error commenting on post:', err);
-    }
-  };
-
-  const handleShowComments = (postId) => {
-    setShowComments(prev => prev === postId ? null : postId);
-  };
-
-  const handleShare = (postId) => {
-    const postUrl = `${window.location.origin}/posts/${postId}`;
-    navigator.clipboard.writeText(postUrl)
-      .then(() => alert('Post link copied to clipboard!'))
-      .catch(err => console.error('Failed to copy link:', err));
-  };
-
-  const generateProfilePicture = (username) => {
-    return username ? username.charAt(0).toUpperCase() : 'U';
-  };
-
-  const toggleDescription = (postId) => {
-    setExpandedPosts(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(postId)) {
-        newSet.delete(postId);
-      } else {
-        newSet.add(postId);
-      }
-      return newSet;
-    });
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString();
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 px-4 py-10 pt-40 text-gray-800">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-100 px-4 py-10 pt-32 text-gray-800">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-4xl font-bold text-center text-blue-700 mb-6">Welcome, Admin</h1>
+
         <input
           type="text"
           placeholder="Search posts by title..."
@@ -124,104 +91,97 @@ const A = () => {
         />
 
         <div className="space-y-6">
-          {filteredPosts.map((post) => {
-            const isLiked = userLikes.has(post._id);
-            const authorInitial = post.author ? post.author.charAt(0).toUpperCase() : 'U';
-
-            return (
-              <div key={post._id} className="bg-white p-6 rounded-lg shadow-md">
-                <div className="flex justify-between items-center mb-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-                      {authorInitial}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-lg text-gray-800">{post.author}</p>
-                      <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
-
-                <p className="text-gray-700 mb-2">
-                  {expandedPosts.has(post._id)
-                    ? post.description
-                    : post.description.slice(0, 150) + (post.description.length > 150 ? '...' : '')}
-                </p>
-                {post.description.length > 150 && (
-                  <button
-                    onClick={() => toggleDescription(post._id)}
-                    className="text-blue-500 hover:underline mb-4"
-                  >
-                    {expandedPosts.has(post._id) ? 'Show Less' : 'Show More'}
-                  </button>
-                )}
-
-                {post.media && isImage(post.media) && (
-                  <img
-                    src={`http://localhost:3001/${post.media}`}
-                    alt="Post"
-                    className="w-full h-auto rounded-lg mb-4"
-                  />
-                )}
-
-                <div className="mt-4">
-                  <button
-                    onClick={() => handleLike(post._id)}
-                    className={`p-2 rounded-full ${userLikes.has(post._id) ? 'bg-red-500 text-white' : 'bg-gray-200'}`}
-                  >
-                    ❤️ {post.likes.length}
-                  </button>
-                  <button
-                    onClick={() => handleShowComments(post._id)}
-                    className="ml-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300"
-                  >
-                    💬 {post.comments.length}
-                  </button>
-                  <button
-                    onClick={() => handleShare(post._id)}
-                    className="ml-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300"
-                  >
-                    📤 Share
-                  </button>
-                </div>
-
-                {/* Comments */}
-                {showComments === post._id && (
-                  <div className="mt-4 space-y-4">
-                    {post.comments.map((comment, idx) => (
-                      <div key={idx} className="flex items-center gap-4">
-                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl">
-                          {generateProfilePicture(comment.user)}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-sm">{comment.user}</div>
-                          <p className="text-gray-700">{comment.comment}</p>
-                        </div>
-                      </div>
-                    ))}
-
-                    <div className="flex items-center mt-4">
-                      <input
-                        type="text"
-                        value={commentTexts[post._id] || ''}
-                        onChange={(e) => handleCommentChange(post._id, e.target.value)}
-                        placeholder="Add a comment"
-                        className="flex-1 p-2 border border-gray-300 rounded-lg"
-                      />
-                      <button
-                        onClick={() => handleCommentSubmit(post._id)}
-                        className="ml-2 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                      >
-                        Submit
-                      </button>
-                    </div>
-                  </div>
-                )}
+          {filteredPosts.map((post) => (
+            <div key={post._id} className="bg-white p-6 rounded-lg shadow-md">
+              <div className="mb-3">
+                <p className="font-semibold text-lg text-gray-800">{post.author}</p>
+                <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p>
               </div>
-            );
-          })}
+
+              {editMode[post._id] ? (
+                <>
+                  <input
+                    type="text"
+                    value={editedPostData[post._id]?.title || ''}
+                    onChange={(e) => handleEditChange(post._id, 'title', e.target.value)}
+                    className="w-full p-2 mb-2 border border-gray-300 rounded"
+                  />
+                  <textarea
+                    value={editedPostData[post._id]?.description || ''}
+                    onChange={(e) => handleEditChange(post._id, 'description', e.target.value)}
+                    className="w-full p-2 mb-2 border border-gray-300 rounded"
+                    rows={3}
+                  />
+                </>
+              ) : (
+                <>
+                  <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
+                  <p className="text-gray-700 mb-2">
+                    {post.description.length > 200 ? (
+                      showMoreMap[post._id] ? (
+                        <>
+                          {post.description}{' '}
+                          <button
+                            onClick={() => toggleShowMore(post._id)}
+                            className="text-blue-600 hover:underline text-sm"
+                          >
+                            Show less
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          {post.description.slice(0, 200)}...{' '}
+                          <button
+                            onClick={() => toggleShowMore(post._id)}
+                            className="text-blue-600 hover:underline text-sm"
+                          >
+                            Show more
+                          </button>
+                        </>
+                      )
+                    ) : (
+                      post.description
+                    )}
+                  </p>
+                </>
+              )}
+
+              {post.media && /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(post.media) && (
+                <img
+                  src={`http://localhost:3001/${post.media}`}
+                  alt="Post"
+                  className="w-full h-auto rounded-lg mb-4"
+                />
+              )}
+
+              <div className="flex gap-2 mt-4">
+                {editMode[post._id] ? (
+                  <button
+                    onClick={() => handleEditSave(post._id)}
+                    title="Save"
+                    className="p-2 bg-green-600 text-white rounded-full hover:bg-green-700"
+                  >
+                    <Check size={18} />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleEditToggle(post)}
+                    title="Edit"
+                    className="p-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600"
+                  >
+                    <Pencil size={18} />
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDelete(post._id)}
+                  title="Delete"
+                  className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
