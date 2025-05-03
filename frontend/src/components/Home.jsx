@@ -30,7 +30,7 @@ const HomePage = () => {
     fetchData();
   }, []);
 
-  const isImage = (filename) => /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(filename);
+  const isImage = (filename) => /.(jpg|jpeg|png|gif|bmp|webp)$/i.test(filename);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -113,7 +113,7 @@ const HomePage = () => {
         />
 
         <div className="space-y-6">
-          {filteredPosts.map((post) => {
+          {filteredPosts.reverse().map((post) => {
             const isLiked = userLikes.has(post._id);
             const authorInitial = post.author ? post.author.charAt(0).toUpperCase() : 'U';
 
