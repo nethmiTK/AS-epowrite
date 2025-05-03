@@ -12,7 +12,7 @@ const Profile = () => {
     pp: null,
   });
   const [notification, setNotification] = useState('');
-  const [preview, setPreview] = useState(null); // State to store image preview
+  const [preview, setPreview] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -43,14 +43,12 @@ const Profile = () => {
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // Handle file change and set preview image
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setFormData({ ...formData, pp: file });
-    // Create an object URL for the selected file and set it as preview
     if (file) {
       const objectURL = URL.createObjectURL(file);
-      setPreview(objectURL); // Set the preview URL
+      setPreview(objectURL);
     }
   };
 
@@ -104,7 +102,7 @@ const Profile = () => {
                       name={field}
                       value={formData[field]}
                       onChange={handleChange}
-                      className="p-4 rounded-xl bg-gray-100 border-2 border-gray-400 focus:ring-2 focus:ring-pink-500 text-black"
+                      className="p-4 rounded-xl bg-gray-100 border-2 border-purple-400 focus:ring-2 focus:ring-purple-500 text-black"
                       initial={{ scaleX: 0 }}
                       animate={{ scaleX: 1 }}
                       transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -117,16 +115,22 @@ const Profile = () => {
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
-                    className="p-4 rounded-xl bg-gray-100 border-2 border-gray-400 focus:ring-2 focus:ring-pink-500"
+                    className="p-4 rounded-xl bg-gray-100 border-2 border-purple-400 focus:ring-2 focus:ring-purple-500"
                   />
-                  {/* Display image preview if a file is selected */}
                   {preview && (
-                    <div className="mt-6 flex justify-center">
+                    <div className="mt-6 flex justify-center relative">
                       <img
                         src={preview}
                         alt="Profile Preview"
-                        className="w-40 h-40 rounded-full object-cover border-4 border-pink-500"
+                        className="w-40 h-40 rounded-full object-cover border-4 border-purple-500"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setPreview(null)}
+                        className="absolute top-0 right-0 bg-white rounded-full p-1 text-purple-600 hover:text-purple-800"
+                      >
+                        &times;
+                      </button>
                     </div>
                   )}
                 </div>
@@ -142,7 +146,7 @@ const Profile = () => {
                   </motion.button>
                   <motion.button
                     type="submit"
-                    className="px-6 py-3 bg-pink-500 hover:bg-pink-400 rounded-xl text-white transition-all duration-300"
+                    className="px-6 py-3 bg-purple-500 hover:bg-purple-400 rounded-xl text-white transition-all duration-300"
                     whileTap={{ scale: 0.95 }}
                   >
                     Save Changes
@@ -164,12 +168,12 @@ const Profile = () => {
                   <img
                     src={profile.pp.startsWith('http') ? profile.pp : `http://localhost:3001${profile.pp}`}
                     alt="Profile"
-                    className="w-32 h-32 mt-4 rounded-full object-cover border-4 border-pink-500"
+                    className="w-32 h-32 mt-4 rounded-full object-cover border-4 border-purple-500"
                   />
                 </div>
                 <motion.button
                   onClick={() => setEditMode(true)}
-                  className="mt-6 px-6 py-3 bg-pink-500 hover:bg-pink-400 rounded-xl text-white transition-all duration-300"
+                  className="mt-6 px-6 py-3 bg-purple-500 hover:bg-purple-400 rounded-xl text-white transition-all duration-300"
                   whileTap={{ scale: 0.95 }}
                 >
                   Edit Profile
