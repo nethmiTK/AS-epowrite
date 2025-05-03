@@ -30,13 +30,11 @@ const HomePage = () => {
     fetchData();
   }, []);
 
-  const isImage = (filename) => {
-    return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(filename);
-  };
+  const isImage = (filename) => /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(filename);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleString(); // includes both date and time
+    return date.toLocaleString();
   };
 
   const filteredPosts = posts.filter(post =>
@@ -46,19 +44,14 @@ const HomePage = () => {
   const handleLike = async (postId) => {
     if (!profile) return alert('You must be logged in to like posts');
     try {
-      const res = await axios.post(
-        `http://localhost:3001/api/posts/${postId}/like`,
-        { userId: profile.fullName }
-      );
+      const res = await axios.post(`http://localhost:3001/api/posts/${postId}/like`, {
+        userId: profile.fullName
+      });
 
       setPosts(posts.map(post => post._id === postId ? res.data : post));
       setUserLikes(prev => {
         const newLikes = new Set(prev);
-        if (newLikes.has(postId)) {
-          newLikes.delete(postId);
-        } else {
-          newLikes.add(postId);
-        }
+        newLikes.has(postId) ? newLikes.delete(postId) : newLikes.add(postId);
         return newLikes;
       });
     } catch (err) {
@@ -103,24 +96,20 @@ const HomePage = () => {
   const toggleDescription = (postId) => {
     setExpandedPosts(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(postId)) {
-        newSet.delete(postId);
-      } else {
-        newSet.add(postId);
-      }
+      newSet.has(postId) ? newSet.delete(postId) : newSet.add(postId);
       return newSet;
     });
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 px-4 py-10 pt-40 text-gray-800">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-100 pt-32 pb-10 px-4 sm:px-6 lg:px-8 text-gray-800">
+      <div className="max-w-5xl mx-auto">
         <input
           type="text"
           placeholder="Search posts by title..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm"
+          className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm text-base sm:text-lg"
         />
 
         <div className="space-y-6">
@@ -129,22 +118,22 @@ const HomePage = () => {
             const authorInitial = post.author ? post.author.charAt(0).toUpperCase() : 'U';
 
             return (
-              <div key={post._id} className="bg-white p-6 rounded-lg shadow-md">
-                <div className="flex justify-between items-center mb-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+              <div key={post._id} className="bg-white p-5 sm:p-6 rounded-lg shadow-md">
+                <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
                       {authorInitial}
                     </div>
                     <div>
-                      <p className="font-semibold text-lg text-gray-800">{post.author}</p>
+                      <p className="font-semibold text-base sm:text-lg text-gray-800">{post.author}</p>
                       <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p>
                     </div>
                   </div>
                 </div>
 
-                <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-2">{post.title}</h2>
 
-                <p className="text-gray-700 mb-2 text-justify">
+                <p className="text-gray-700 mb-2 text-justify text-sm sm:text-base">
                   {expandedPosts.has(post._id)
                     ? post.description
                     : post.description.slice(0, 150) + (post.description.length > 150 ? '...' : '')}
@@ -152,7 +141,7 @@ const HomePage = () => {
                 {post.description.length > 150 && (
                   <button
                     onClick={() => toggleDescription(post._id)}
-                    className="text-blue-500 hover:underline mb-4"
+                    className="text-blue-500 hover:underline text-sm sm:text-base mb-4"
                   >
                     {expandedPosts.has(post._id) ? 'Show Less' : 'Show More'}
                   </button>
@@ -162,57 +151,56 @@ const HomePage = () => {
                   <img
                     src={`http://localhost:3001/${post.media}`}
                     alt="Post"
-                    className="w-full h-auto rounded-lg mb-4"
+                    className="w-full max-w-full h-auto rounded-lg mb-4"
                   />
                 )}
 
-                <div className="mt-4">
+                <div className="mt-4 flex flex-wrap items-center gap-3">
                   <button
                     onClick={() => handleLike(post._id)}
-                    className={`p-2 rounded-full ${userLikes.has(post._id) ? 'bg-red-500 text-white' : 'bg-gray-200'}`}
+                    className={`px-3 py-1 rounded-full text-sm ${isLiked ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-800'}`}
                   >
                     ❤️ {post.likes.length}
                   </button>
                   <button
                     onClick={() => handleShowComments(post._id)}
-                    className="ml-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300"
+                    className="px-3 py-1 rounded-full text-sm bg-gray-200 hover:bg-gray-300"
                   >
                     💬 {post.comments.length}
                   </button>
                   <button
                     onClick={() => handleShare(post._id)}
-                    className="ml-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300"
+                    className="px-3 py-1 rounded-full text-sm bg-gray-200 hover:bg-gray-300"
                   >
                     📤 Share
                   </button>
                 </div>
 
-                {/* Comments */}
                 {showComments === post._id && (
                   <div className="mt-4 space-y-4">
                     {post.comments.map((comment, idx) => (
-                      <div key={idx} className="flex items-center gap-4">
-                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl">
+                      <div key={idx} className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-lg">
                           {generateProfilePicture(comment.user)}
                         </div>
                         <div>
                           <div className="font-semibold text-sm">{comment.user}</div>
-                          <p className="text-gray-700">{comment.comment}</p>
+                          <p className="text-gray-700 text-sm">{comment.comment}</p>
                         </div>
                       </div>
                     ))}
 
-                    <div className="flex items-center mt-4">
+                    <div className="flex items-center mt-3 flex-wrap gap-2">
                       <input
                         type="text"
                         value={commentTexts[post._id] || ''}
                         onChange={(e) => handleCommentChange(post._id, e.target.value)}
                         placeholder="Add a comment"
-                        className="flex-1 p-2 border border-gray-300 rounded-lg"
+                        className="flex-1 min-w-[200px] p-2 border border-gray-300 rounded-lg text-sm"
                       />
                       <button
                         onClick={() => handleCommentSubmit(post._id)}
-                        className="ml-2 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                        className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
                       >
                         Submit
                       </button>

@@ -53,7 +53,7 @@ function App() {
       {!isHeaderHidden && <Header />}
       {!isHeaderHidden && <HamburgerMenu user={user} />}
 
-      <div className={`content-wrapper transition-all duration-300 ${!isHeaderHidden ? "ml-64" : ""} px-4 pt-6`}>
+      <div className="content-wrapper transition-all duration-300 px-4 pt-6">
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
