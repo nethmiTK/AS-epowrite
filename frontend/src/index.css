@@ -10,40 +10,9 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Fade-in Effect for Text */
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Apply Fade-in animation */
-.animate-fadein {
-  animation: fadeIn 2s ease-out forwards;
-  color: bg-pink-500 px-4 py-2 rounded shadow; /* Text color */
-}
-
-/* Typewriter Animation */
-.animate-typewriter {
-  display: inline-block;
-  overflow: hidden;
-  white-space: nowrap;
-  border-right: 4px solid #fff; /* This creates the cursor effect */
-  width: 0;
-  animation: typewriter 4s steps(30) 1s 1 normal both;
-}
-
 a {
   font-weight: 500;
   text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
 }
 
 h1 {
@@ -67,57 +36,16 @@ h1 {
   h1 {
     font-size: 2.4em; /* Smaller font size for mobile */
   }
-
-  /* Adjust padding for smaller devices */
-  .animate-fadein {
-    padding: 1rem;
-  }
 }
 
 @media (min-width: 641px) and (max-width: 1024px) {
   h1 {
     font-size: 2.8em; /* Medium font size for tablets */
   }
-
-  /* Adjust padding for tablet */
-  .animate-fadein {
-    padding: 2rem;
-  }
 }
 
 @media (min-width: 1025px) {
   h1 {
     font-size: 3.2em; /* Larger font size for desktop */
-  }
-
-  /* Adjust padding for desktop */
-  .animate-fadein {
-    padding: 3rem;
-  }
-}
-
-/* Responsive Animation Background */
-@keyframes moveBalls {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(20px); }
-}
-
-.bg-animated-balls {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, #000000 4px, transparent 4px);
-  background-size: 40px 40px;
-  animation: moveBalls 3s infinite ease-in-out;
-  z-index: -1;
-  opacity: 0.05;
-}
-
-/* Optional: disable background animation on very small screens */
-@media (max-width: 480px) {
-  .bg-animated-balls {
-    display: none;
   }
 }

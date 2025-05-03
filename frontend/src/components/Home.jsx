@@ -144,7 +144,7 @@ const HomePage = () => {
 
                 <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
 
-                <p className="text-gray-700 mb-2">
+                <p className="text-gray-700 mb-2 text-justify">
                   {expandedPosts.has(post._id)
                     ? post.description
                     : post.description.slice(0, 150) + (post.description.length > 150 ? '...' : '')}
