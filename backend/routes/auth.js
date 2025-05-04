@@ -1,4 +1,4 @@
-// login /register backend 
+
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
@@ -6,9 +6,6 @@ const jwt = require('jsonwebtoken');
 
 const router = express.Router();
 
-
-
-//check if user is logged in
 
  router.post('/register', async (req, res) => {
   try {
@@ -19,9 +16,6 @@ const router = express.Router();
       return res.status(400).json({ message: 'Username or Email already exists' });
     }
 
-
-
-//new user save
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
       fullName,
@@ -31,16 +25,13 @@ const router = express.Router();
       pp,
     });
 
-
-
     await newUser.save();
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Server error during registration' });
   }
 });
-
-// Login endpoint (new)
+ 
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;

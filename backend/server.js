@@ -19,9 +19,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 // Routes
-app.use('/api/auth', authRoutes);  // Auth routes
-app.use('/api/users', userRoutes);  // User profile routes
-app.use('/api/posts', postRoutes);  // Post routes
+app.use('/api/auth', authRoutes); 
+app.use('/api/users', userRoutes);  
+app.use('/api/posts', postRoutes);  
 
 // MongoDB Connection
 mongoose
