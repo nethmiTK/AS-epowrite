@@ -124,5 +124,33 @@ router.delete('/:postId', async (req, res) => {
     res.status(500).json({ message: 'Error deleting post', error: error.message });
   }
 });
+router.post('/:postId/report', async (req, res) => {
+  const { postId } = req.params;
+  const { reportedBy } = req.body; // get the reporter's name or ID
+
+  try {
+    const updatedPost = await Post.findByIdAndUpdate(
+      postId,
+      {
+        $set: { reported: true },
+        $push: {
+          reports: {
+            reportedBy,
+          },
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedPost) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    res.json({ message: 'Post reported successfully', post: updatedPost });
+  } catch (err) {
+    res.status(500).json({ message: 'Error reporting the post', error: err });
+  }
+});
+
 
 module.exports = router;

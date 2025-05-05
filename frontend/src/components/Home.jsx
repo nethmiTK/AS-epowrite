@@ -100,7 +100,21 @@ const HomePage = () => {
       return newSet;
     });
   };
-
+  const handleReport = async (postId) => {
+    if (!profile) return alert('You must be logged in to report posts');
+    try {
+      const res = await axios.post(`http://localhost:3001/api/posts/${postId}/report`, {
+        reportedBy: profile.username, // or profile._id, depending on your schema
+      });
+      alert('Post reported successfully!');
+      setPosts(posts.map(post => post._id === postId ? res.data.post : post));
+    } catch (err) {
+      console.error('Error reporting post:', err);
+    }
+  };
+  
+  
+  
   return (
     <div className="min-h-screen bg-gray-100 pt-32 pb-10 px-4 sm:px-6 lg:px-8 text-gray-800">
       <div className="max-w-5xl mx-auto">
@@ -174,6 +188,14 @@ const HomePage = () => {
                   >
                     📤 Share
                   </button>
+                  <button
+  onClick={() => handleReport(post._id)}
+  className="px-3 py-1 rounded-full text-sm bg-red-500 text-white hover:bg-red-600"
+>
+  🚨 Report
+</button>
+
+
                 </div>
 
                 {showComments === post._id && (

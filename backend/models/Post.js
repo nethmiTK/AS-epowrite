@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');  // Add this line
+const mongoose = require('mongoose');  // Add this line at the top of your file
 
 const postSchema = new mongoose.Schema(
   {
@@ -7,7 +7,7 @@ const postSchema = new mongoose.Schema(
     author: String,
     media: String,
     likes: {
-      type: [String], // Array of userIds
+      type: [String],
       default: [],
     },
     comments: [
@@ -20,10 +20,24 @@ const postSchema = new mongoose.Schema(
         },
       },
     ],
+    reported: {
+      type: Boolean,
+      default: false,
+    },
+    reports: [
+      {
+        reportedBy: String, // You can change this to ObjectId if needed
+        reportedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt
+    timestamps: true,
   }
 );
+
 
 module.exports = mongoose.model('Post', postSchema);
