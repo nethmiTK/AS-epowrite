@@ -126,7 +126,7 @@ router.delete('/:postId', async (req, res) => {
 });
 router.post('/:postId/report', async (req, res) => {
   const { postId } = req.params;
-  const { reportedBy } = req.body; // get the reporter's name or ID
+  const { reportedBy, reporterName, reason } = req.body; // get all required fields
 
   try {
     const updatedPost = await Post.findByIdAndUpdate(
@@ -136,6 +136,9 @@ router.post('/:postId/report', async (req, res) => {
         $push: {
           reports: {
             reportedBy,
+            reporterName,
+            reason,
+            reportedAt: new Date(), // explicitly set the timestamp
           },
         },
       },

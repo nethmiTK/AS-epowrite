@@ -26,7 +26,9 @@ const postSchema = new mongoose.Schema(
     },
     reports: [
       {
-        reportedBy: String, // You can change this to ObjectId if needed
+        reportedBy: String,  // user ID or username
+        reporterName: String, // new field
+        reason: String,       // new field
         reportedAt: {
           type: Date,
           default: Date.now,
@@ -38,6 +40,5 @@ const postSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
 
 module.exports = mongoose.model('Post', postSchema);

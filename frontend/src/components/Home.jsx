@@ -100,19 +100,31 @@ const HomePage = () => {
       return newSet;
     });
   };
-  const handleReport = async (postId) => {
-    if (!profile) return alert('You must be logged in to report posts');
-    try {
-      const res = await axios.post(`http://localhost:3001/api/posts/${postId}/report`, {
-        reportedBy: profile.username, // or profile._id, depending on your schema
-      });
-      alert('Post reported successfully!');
-      setPosts(posts.map(post => post._id === postId ? res.data.post : post));
-    } catch (err) {
-      console.error('Error reporting post:', err);
-    }
-  };
   
+const [reason, setReason] = useState("");  // State to store the reason
+
+const handleReport = async (postId) => {
+  if (!profile) return alert('You must be logged in to report posts');
+
+  // Ask for the reason
+  const reportReason = prompt('Please provide a reason for reporting this post:');
+
+  if (!reportReason) {
+    return alert('You must provide a reason to report this post');
+  }
+
+  try {
+    const res = await axios.post(`http://localhost:3001/api/posts/${postId}/report`, {
+      reportedBy: profile.username,  // or profile._id, depending on your schema
+      reason: reportReason,          // Add the reason to the report data
+    });
+    alert('Post reported successfully!');
+    setPosts(posts.map(post => post._id === postId ? res.data.post : post));
+  } catch (err) {
+    console.error('Error reporting post:', err);
+    alert('There was an error reporting the post.');
+  }
+};
   
   
   return (
