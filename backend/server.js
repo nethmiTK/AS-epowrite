@@ -25,7 +25,7 @@ app.use('/api/posts', postRoutes);
 
 // MongoDB Connection
 mongoose
-  .connect('mongodb://localhost:27017/epowrite-22', { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect('mongodb://localhost:27017/epowrite', { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('✅ MongoDB connected'))
   .catch((error) => console.error('❌ MongoDB connection failed:', error));
 
