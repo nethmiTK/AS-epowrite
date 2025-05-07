@@ -28,7 +28,7 @@ const Dashboard = () => {
         setAuthor(profileRes.data.fullName);
 
         const postRes = await axios.get('http://localhost:3001/api/posts');
-        setPosts(postRes.data.filter(post => post.author === profileRes.data.fullName));
+        setPosts(postRes.data.filter(post => post.author === profileRes.data.email));
       } catch (err) {
         console.error('Error:', err);
       }

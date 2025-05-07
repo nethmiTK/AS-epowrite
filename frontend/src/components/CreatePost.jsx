@@ -22,7 +22,7 @@ const CreatePost = () => {
         const profileRes = await axios.get('http://localhost:3001/api/users/profile', {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setAuthor(profileRes.data.fullName);
+        setAuthor(profileRes.data.email);
 
         const postRes = await axios.get('http://localhost:3001/api/posts');
         setPosts(postRes.data.filter(post => post.author === profileRes.data.fullName));
