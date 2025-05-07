@@ -10,10 +10,14 @@ import logo from '../assets/epowrite.png';
 import { toast, ToastContainer } from 'react-toastify'; // Importing Toastify
 import 'react-toastify/dist/ReactToastify.css'; // Import Toastify styles
 
+// Updated validation schema with custom email validation
 const validationSchema = Yup.object({
   fullName: Yup.string().required('Full Name is required'),
   username: Yup.string().required('Username is required'),
-  email: Yup.string().email('Invalid email').required('Email is required'),
+  email: Yup.string()
+    .email('Invalid email format')
+    .test('contains-dot', 'Email must contain a dot (.)', (value) => value && value.includes('.')) // Custom test for dot
+    .required('Email is required'),
   password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password'), null], 'Passwords must match')
@@ -51,7 +55,6 @@ const Register = () => {
         className="bg-white/90 border-4 border-darkGrey p-8 sm:p-12 rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.4)] w-full max-w-md z-20"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
-        // Increased the min-height to 700px for more height
       >
         <div className="flex justify-center mb-4">
           <img src={logo} alt="Logo" className="h-16 w-16 sm:h-24 sm:w-24 rounded-full" />
