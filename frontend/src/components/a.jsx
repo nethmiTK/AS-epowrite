@@ -4,6 +4,7 @@ import { Pencil, Trash2, Check } from 'lucide-react';
 
 const A = () => {
   const [posts, setPosts] = useState([]);
+  const [reportedPosts, setReportedPosts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [editMode, setEditMode] = useState({});
   const [editedPostData, setEditedPostData] = useState({});
@@ -11,6 +12,7 @@ const A = () => {
 
   useEffect(() => {
     fetchPosts();
+    fetchReportedPosts();
   }, []);
 
   const fetchPosts = async () => {
@@ -22,11 +24,21 @@ const A = () => {
     }
   };
 
+  const fetchReportedPosts = async () => {
+    try {
+      const res = await axios.get('http://localhost:3001/api/posts/reported');
+      setReportedPosts(res.data);
+    } catch (err) {
+      console.error('Error fetching reported posts:', err);
+    }
+  };
+
   const handleDelete = async (postId) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
       try {
         await axios.delete(`http://localhost:3001/api/posts/${postId}`);
         setPosts(posts.filter(post => post._id !== postId));
+        setReportedPosts(reportedPosts.filter(post => post._id !== postId));
       } catch (err) {
         console.error('Error deleting post:', err);
       }
@@ -56,6 +68,7 @@ const A = () => {
       const updatedData = editedPostData[postId];
       const res = await axios.put(`http://localhost:3001/api/posts/${postId}`, updatedData);
       setPosts(posts.map(post => post._id === postId ? res.data : post));
+      setReportedPosts(reportedPosts.map(post => post._id === postId ? res.data : post));
       setEditMode((prev) => ({ ...prev, [postId]: false }));
     } catch (err) {
       console.error('Error updating post:', err);
@@ -179,6 +192,33 @@ const A = () => {
                 >
                   <Trash2 size={18} />
                 </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Reported Posts Section */}
+        <h2 className="text-3xl font-bold mt-10 mb-4 text-red-600">Reported Posts</h2>
+        <div className="space-y-6">
+          {reportedPosts.map((post) => (
+            <div key={post._id} className="bg-red-50 border border-red-300 p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-semibold text-red-800">{post.title}</h3>
+              <p className="text-sm text-gray-600 mb-2">By: {post.author} | {formatDate(post.createdAt)}</p>
+              <p className="text-gray-800 mb-2">{post.description}</p>
+
+              <div className="bg-white p-3 rounded border mt-4">
+                <h4 className="text-md font-semibold text-red-700 mb-2">Reports:</h4>
+                {post.reports.length === 0 ? (
+                  <p className="text-gray-600">No detailed report.</p>
+                ) : (
+                  post.reports.map((report, index) => (
+                    <div key={index} className="border-t py-2">
+                      <p className="text-sm"><strong>Reporter:</strong> {report.reporterName}</p>
+                      <p className="text-sm"><strong>Reason:</strong> {report.reason}</p>
+                      <p className="text-xs text-gray-500">{formatDate(report.reportedAt)}</p>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           ))}

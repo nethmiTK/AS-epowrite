@@ -156,4 +156,15 @@ router.post('/:postId/report', async (req, res) => {
 });
 
 
+// Get all reported posts
+router.get('/reported', async (req, res) => {
+  try {
+    const reportedPosts = await Post.find({ reported: true }).sort({ updatedAt: -1 });
+    res.json(reportedPosts);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching reported posts', error: err });
+  }
+});
+
+
 module.exports = router;
