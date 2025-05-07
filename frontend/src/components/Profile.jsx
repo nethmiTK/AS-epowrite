@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
@@ -11,13 +13,12 @@ const Profile = () => {
     email: '',
     pp: null,
   });
-  const [notification, setNotification] = useState('');
   const [preview, setPreview] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Please login.');
+      toast.error('Please login.');
       return;
     }
     const fetchProfile = async () => {
@@ -29,19 +30,18 @@ const Profile = () => {
         setFormData({
           fullName: res.data.fullName,
           username: res.data.username,
-          // email: res.data.email,
           pp: null,
         });
-        setNotification('');
       } catch (err) {
         console.error('Error fetching profile:', err);
-        setNotification('Error fetching profile. Please check your token or API connection.');
+        toast.error('Error fetching profile. Please check your token or API connection.');
       }
     };
     fetchProfile();
   }, []);
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -58,30 +58,26 @@ const Profile = () => {
     const data = new FormData();
     data.append('fullName', formData.fullName);
     data.append('username', formData.username);
-    // data.append('email', formData.email);
     if (formData.pp instanceof File) data.append('pp', formData.pp);
     try {
       const res = await axios.put('http://localhost:3001/api/users/update', data, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfile(res.data.user);
-      setNotification(res.data.message);
+      toast.success(res.data.message || 'Profile updated successfully!');
       setEditMode(false);
+      setPreview(null);
     } catch (err) {
       console.error('Error updating profile:', err);
-      setNotification(err.response?.data?.message || 'Profile update failed.');
+      toast.error(err.response?.data?.message || 'Profile update failed.');
     }
   };
 
   return (
-    <div className="p-6 bg-white min-h-screen flex items-center justify-center">
+<div className="min-h-screen flex items-center justify-center bg-white px-4">
+<ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop />
       <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-2xl z-10 text-black">
-        <h2 className="text-3xl font-extrabold text-black mb-4">👤 Profile Settings</h2>
-        {notification && (
-          <motion.p className="mb-4 text-red-400" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            {notification}
-          </motion.p>
-        )}
+        <h2 className="text-3xl font-extrabold justify-center text-black mb-4">👤 Profile Settings</h2>
         <AnimatePresence mode="wait">
           {profile ? (
             editMode ? (
@@ -98,7 +94,7 @@ const Profile = () => {
                       {field === 'fullName' ? 'Full Name' : field.charAt(0).toUpperCase() + field.slice(1)}
                     </label>
                     <motion.input
-                      type={field === 'email' ? 'email' : 'text'}
+                      type="text"
                       name={field}
                       value={formData[field]}
                       onChange={handleChange}
@@ -138,7 +134,10 @@ const Profile = () => {
                 <div className="flex justify-between mt-6">
                   <motion.button
                     type="button"
-                    onClick={() => { setEditMode(false); setNotification(''); }}
+                    onClick={() => {
+                      setEditMode(false);
+                      setPreview(null);
+                    }}
                     className="px-6 py-3 bg-gray-300 hover:bg-gray-400 rounded-xl text-black transition-all duration-300"
                     whileTap={{ scale: 0.95 }}
                   >
