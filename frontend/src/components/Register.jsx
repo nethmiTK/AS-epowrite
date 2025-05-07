@@ -7,18 +7,24 @@ import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import AnimatedBalls from '../components/AnimatedBalls';
 import logo from '../assets/epowrite.png';
-import { toast, ToastContainer } from 'react-toastify'; // Importing Toastify
-import 'react-toastify/dist/ReactToastify.css'; // Import Toastify styles
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-// Updated validation schema with custom email validation
+// Strong password validation schema
 const validationSchema = Yup.object({
   fullName: Yup.string().required('Full Name is required'),
   username: Yup.string().required('Username is required'),
   email: Yup.string()
     .email('Invalid email format')
-    .test('contains-dot', 'Email must contain a dot (.)', (value) => value && value.includes('.')) // Custom test for dot
+    .test('contains-dot', 'Email must contain a dot (.)', (value) => value && value.includes('.'))
     .required('Email is required'),
-  password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+  password: Yup.string()
+    .required('Password is required')
+    .min(8, 'Password must be at least 8 characters')
+    .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .matches(/\d/, 'Password must contain at least one number')
+    .matches(/[@$!%*?&]/, 'Password must contain at least one special character (@$!%*?&)'),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password'), null], 'Passwords must match')
     .required('Confirm Password is required'),
@@ -30,10 +36,10 @@ const Register = () => {
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       const { data } = await axios.post('http://localhost:3001/api/auth/register', values);
-      toast.success(data.message); // Show success notification
+      toast.success(data.message);
       navigate('/');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Error registering user'); // Show error notification
+      toast.error(err.response?.data?.message || 'Error registering user');
     } finally {
       setSubmitting(false);
     }
@@ -44,7 +50,7 @@ const Register = () => {
     username: <FaUserAlt className="text-darkGrey mr-3" />,
     email: <FaEnvelope className="text-darkGrey mr-3" />,
     password: <FaLock className="text-darkGrey mr-3" />,
-    confirmPassword: <FaLock className="text-darkGrey mr-3" />, // Confirm Password icon
+    confirmPassword: <FaLock className="text-darkGrey mr-3" />,
   };
 
   return (
@@ -78,9 +84,19 @@ const Register = () => {
                   <div className="flex items-center bg-white/20 border border-darkGrey/30 rounded-xl p-2">
                     {fieldIcons[field]}
                     <Field
-                      type={field === 'email' ? 'email' : field === 'password' || field === 'confirmPassword' ? 'password' : 'text'}
+                      type={
+                        field === 'email'
+                          ? 'email'
+                          : field === 'password' || field === 'confirmPassword'
+                          ? 'password'
+                          : 'text'
+                      }
                       name={field}
-                      placeholder={field === 'fullName' ? 'Full Name' : field.charAt(0).toUpperCase() + field.slice(1)}
+                      placeholder={
+                        field === 'fullName'
+                          ? 'Full Name'
+                          : field.charAt(0).toUpperCase() + field.slice(1)
+                      }
                       className="bg-transparent w-full text-darkGrey placeholder-darkGrey focus:outline-none"
                     />
                   </div>
@@ -111,7 +127,6 @@ const Register = () => {
         </Formik>
       </motion.div>
 
-      {/* ToastContainer to display the notifications */}
       <ToastContainer
         position="top-right"
         autoClose={5000}
