@@ -29,6 +29,9 @@ const Hamburger = ({ user }) => {
 
   if (hideNavbar) return null;
 
+  const activeLinkStyle = 'text-white bg-purple-500 px-3 py-1 rounded-md';
+  const inactiveLinkStyle = 'text-purple-500 hover:text-purple-600';
+
   return (
     <header className="bg-[#f8f8f8] shadow-lg fixed w-full z-50 font-bold overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
@@ -40,20 +43,39 @@ const Hamburger = ({ user }) => {
 
         {/* NAVIGATION MENU - DESKTOP */}
         <nav className="hidden md:flex items-center gap-6 text-base uppercase order-2">
-          <Link to="/home" className="text-purple-500 hover:text-purple-600 transition flex items-center gap-1">
+          <Link
+            to="/home"
+            className={`transition flex items-center gap-1 ${
+              location.pathname === '/home' ? activeLinkStyle : inactiveLinkStyle
+            }`}
+          >
             <FiHome /> Home
           </Link>
-          <Link to="/dashboard" className="text-purple-500 hover:text-purple-600 transition flex items-center gap-1">
+
+          <Link
+            to="/dashboard"
+            className={`transition flex items-center gap-1 ${
+              location.pathname === '/dashboard' ? activeLinkStyle : inactiveLinkStyle
+            }`}
+          >
             <FiUser /> My Account
           </Link>
+
           <hr className="h-6 w-px bg-purple-300 mx-2" />
-          <Link to="/create-post" className="text-purple-500 hover:text-purple-600 transition flex items-center gap-1">
+
+          <Link
+            to="/create-post"
+            className={`transition flex items-center gap-1 ${
+              location.pathname === '/create-post' ? activeLinkStyle : inactiveLinkStyle
+            }`}
+          >
             <FiEdit /> Create Post
           </Link>
+
           {user && (
             <div
               onClick={handleLogout}
-              className="text-purple-500 hover:text-purple-600 cursor-pointer transition flex items-center gap-1"
+              className="cursor-pointer transition flex items-center gap-1 text-purple-500 hover:text-purple-600"
             >
               <FiLogOut /> Logout
             </div>
@@ -92,17 +114,35 @@ const Hamburger = ({ user }) => {
       {/* MOBILE MENU */}
       {isOpen && (
         <div className="md:hidden bg-white text-purple-500 px-4 pb-4 space-y-3 font-semibold border-t border-purple-200 transition-all duration-300 ease-in-out">
-          <Link to="/home" onClick={() => setIsOpen(false)} className="block flex items-center gap-2">
+          <Link
+            to="/home"
+            onClick={() => setIsOpen(false)}
+            className={`block flex items-center gap-2 ${
+              location.pathname === '/home' ? activeLinkStyle : 'text-purple-500'
+            }`}
+          >
             <FiHome /> Home
           </Link>
-          <Link to="/dashboard" onClick={() => setIsOpen(false)} className="block flex items-center gap-2">
+
+          <Link
+            to="/dashboard"
+            onClick={() => setIsOpen(false)}
+            className={`block flex items-center gap-2 ${
+              location.pathname === '/dashboard' ? activeLinkStyle : 'text-purple-500'
+            }`}
+          >
             <FiUser /> My Account
           </Link>
 
-          {/* Separator */}
           <hr className="border-purple-300 my-2" />
 
-          <Link to="/create-post" onClick={() => setIsOpen(false)} className="block flex items-center gap-2">
+          <Link
+            to="/create-post"
+            onClick={() => setIsOpen(false)}
+            className={`block flex items-center gap-2 ${
+              location.pathname === '/create-post' ? activeLinkStyle : 'text-purple-500'
+            }`}
+          >
             <FiEdit /> Create Post
           </Link>
 
