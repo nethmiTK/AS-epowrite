@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const HomePage = () => {
   const [posts, setPosts] = useState([]);
@@ -9,6 +11,9 @@ const HomePage = () => {
   const [commentTexts, setCommentTexts] = useState({});
   const [showComments, setShowComments] = useState(null);
   const [expandedPosts, setExpandedPosts] = useState(new Set());
+  const [showReportModal, setShowReportModal] = useState(null);
+  const [reportReason, setReportReason] = useState('');
+  const [reportedPosts, setReportedPosts] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,7 +47,7 @@ const HomePage = () => {
   );
 
   const handleLike = async (postId) => {
-    if (!profile) return alert('You must be logged in to like posts');
+    if (!profile) return toast.warn('You must be logged in to like posts');
     try {
       const res = await axios.post(`http://localhost:3001/api/posts/${postId}/like`, {
         userId: profile.fullName
@@ -73,8 +78,10 @@ const HomePage = () => {
       });
       setPosts(posts.map(post => post._id === postId ? res.data : post));
       setCommentTexts(prev => ({ ...prev, [postId]: '' }));
+      toast.success('Comment added!');
     } catch (err) {
       console.error('Error commenting on post:', err);
+      toast.error('Failed to add comment');
     }
   };
 
@@ -85,8 +92,8 @@ const HomePage = () => {
   const handleShare = (postId) => {
     const postUrl = `${window.location.origin}/posts/${postId}`;
     navigator.clipboard.writeText(postUrl)
-      .then(() => alert('Post link copied to clipboard!'))
-      .catch(err => console.error('Failed to copy link:', err));
+      .then(() => toast.info('Post link copied to clipboard!'))
+      .catch(err => toast.error('Failed to copy link'));
   };
 
   const generateProfilePicture = (username) => {
@@ -100,35 +107,31 @@ const HomePage = () => {
       return newSet;
     });
   };
-  
-const [reason, setReason] = useState("");  // State to store the reason
 
-const handleReport = async (postId) => {
-  if (!profile) return alert('You must be logged in to report posts');
+  const handleReportSubmit = async (postId) => {
+    if (!reportReason) return toast.warn('Please select a reason');
+    if (!profile) return toast.warn('You must be logged in to report posts');
 
-  // Ask for the reason
-  const reportReason = prompt('Please provide a reason for reporting this post:');
+    try {
+      await axios.post(`http://localhost:3001/api/posts/${postId}/report`, {
+        reportedBy: profile._id,
+        reporterName: profile.fullName,
+        reason: reportReason,
+      });
 
-  if (!reportReason) {
-    return alert('You must provide a reason to report this post');
-  }
+      setReportedPosts(prev => ({ ...prev, [postId]: reportReason }));
+      setShowReportModal(null);
+      setReportReason('');
+      toast.success('Post reported successfully!');
+    } catch (err) {
+      console.error('Error reporting post:', err);
+      toast.error('Failed to report post');
+    }
+  };
 
-  try {
-    const res = await axios.post(`http://localhost:3001/api/posts/${postId}/report`, {
-      reportedBy: profile.username,  // or profile._id, depending on your schema
-      reason: reportReason,          // Add the reason to the report data
-    });
-    alert('Post reported successfully!');
-    setPosts(posts.map(post => post._id === postId ? res.data.post : post));
-  } catch (err) {
-    console.error('Error reporting post:', err);
-    alert('There was an error reporting the post.');
-  }
-};
-  
-  
   return (
     <div className="min-h-screen bg-gray-100 pt-32 pb-10 px-4 sm:px-6 lg:px-8 text-gray-800">
+      <ToastContainer />
       <div className="max-w-5xl mx-auto">
         <input
           type="text"
@@ -144,7 +147,7 @@ const handleReport = async (postId) => {
             const authorInitial = post.author ? post.author.charAt(0).toUpperCase() : 'U';
 
             return (
-              <div key={post._id} className="bg-white p-5 sm:p-6 rounded-lg shadow-md">
+              <div key={post._id} className="bg-white p-5 sm:p-6 rounded-lg shadow-md relative">
                 <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
@@ -201,13 +204,11 @@ const handleReport = async (postId) => {
                     📤 Share
                   </button>
                   <button
-  onClick={() => handleReport(post._id)}
-  className="px-3 py-1 rounded-full text-sm bg-red-500 text-white hover:bg-red-600"
->
-  🚨 Report
-</button>
-
-
+                    onClick={() => setShowReportModal(post._id)}
+                    className="px-3 py-1 rounded-full text-sm bg-red-500 text-white hover:bg-red-600"
+                  >
+                    🚨 Report
+                  </button>
                 </div>
 
                 {showComments === post._id && (
@@ -238,6 +239,48 @@ const handleReport = async (postId) => {
                       >
                         Submit
                       </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Show Reported Card */}
+                {reportedPosts[post._id] && (
+                  <div className="mt-4 p-3 bg-red-100 text-red-700 border border-red-300 rounded text-sm">
+                    ⚠️ You reported this post for: <strong>{reportedPosts[post._id]}</strong>
+                  </div>
+                )}
+
+                {/* Report Modal */}
+                {showReportModal === post._id && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm text-center">
+                      <h3 className="text-lg font-semibold mb-4">Report Post</h3>
+                      <select
+                        value={reportReason}
+                        onChange={(e) => setReportReason(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded mb-4"
+                      >
+                        <option value="">Select a reason</option>
+                        <option value="Spam">Spam</option>
+                        <option value="Harassment">Harassment</option>
+                        <option value="False Information">False Information</option>
+                        <option value="Hate Speech">Hate Speech</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => setShowReportModal(null)}
+                          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => handleReportSubmit(post._id)}
+                          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                        >
+                          Submit
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}

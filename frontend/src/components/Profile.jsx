@@ -29,7 +29,7 @@ const Profile = () => {
         setFormData({
           fullName: res.data.fullName,
           username: res.data.username,
-          email: res.data.email,
+          // email: res.data.email,
           pp: null,
         });
         setNotification('');
@@ -58,7 +58,7 @@ const Profile = () => {
     const data = new FormData();
     data.append('fullName', formData.fullName);
     data.append('username', formData.username);
-    data.append('email', formData.email);
+    // data.append('email', formData.email);
     if (formData.pp instanceof File) data.append('pp', formData.pp);
     try {
       const res = await axios.put('http://localhost:3001/api/users/update', data, {
@@ -92,7 +92,7 @@ const Profile = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
               >
-                {['fullName', 'username', 'email'].map((field, idx) => (
+                {['fullName', 'username'].map((field, idx) => (
                   <motion.div key={idx} className="flex flex-col w-full">
                     <label className="mb-2 text-sm font-semibold text-black">
                       {field === 'fullName' ? 'Full Name' : field.charAt(0).toUpperCase() + field.slice(1)}
