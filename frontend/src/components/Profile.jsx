@@ -74,12 +74,12 @@ const Profile = () => {
   };
 
   return (
-<div className="min-h-screen flex items-center text-center bg-white px-4">
+<div className="min-h-screen flex items-center justify-center bg-white px-4">
 <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop />
       <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-2xl z-10 text-black">
         <h2 className="text-3xl font-extrabold text-center text-black mb-4">👤 Profile Settings</h2>
         <AnimatePresence mode="wait">
-          
+
           {profile ? (
             editMode ? (
               <motion.form
@@ -90,8 +90,8 @@ const Profile = () => {
                 exit={{ opacity: 0, scale: 0.95 }}
               >
                 {['fullName', 'username'].map((field, idx) => (
-                  <motion.div key={idx} className="flex flex-col w-full">
-                    <label className="mb-2 text-sm font-semibold text-black">
+                  <motion.div key={idx} className="flex flex-col w-full text-center">
+                    <label className="mb-2 text-sm font-semibold text-center text-black">
                       {field === 'fullName' ? 'Full Name' : field.charAt(0).toUpperCase() + field.slice(1)}
                     </label>
                     <motion.input
@@ -106,7 +106,7 @@ const Profile = () => {
                     />
                   </motion.div>
                 ))}
-                <div className="flex flex-col">
+                <div className="flex flex-col text-center">
                   <label className="mb-2 text-sm font-semibold text-black">Profile Picture</label>
                   <input
                     type="file"
@@ -132,7 +132,7 @@ const Profile = () => {
                   )}
                 </div>
 
-                <div className="flex justify-between mt-6">
+                <div className="flex  text-center justify-between  mt-6">
                   <motion.button
                     type="button"
                     onClick={() => {
@@ -155,30 +155,33 @@ const Profile = () => {
               </motion.form>
             ) : (
               <motion.div
-                className="space-y-6 w-full"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-              >
-                <div><strong className="text-black">Full Name:</strong> {profile.fullName}</div>
-                <div><strong className="text-black">Username:</strong> {profile.username}</div>
-                <div><strong className="text-black">Email:</strong> {profile.email}</div>
-                <div className="flex flex-col items-start">
-                  <strong className="text-black">Profile Picture:</strong>
-                  <img
-                    src={profile.pp.startsWith('http') ? profile.pp : `http://localhost:3001${profile.pp}`}
-                    alt="Profile"
-                    className="w-32 h-32 mt-4 rounded-full object-cover border-4 border-purple-500"
-                  />
-                </div>
-                <motion.button
-                  onClick={() => setEditMode(true)}
-                  className="mt-6 px-6 py-3 bg-purple-500 hover:bg-purple-400 rounded-xl text-white transition-all duration-300"
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Edit Profile
-                </motion.button>
-              </motion.div>
+  className="space-y-6 w-full text-center flex flex-col items-center"
+  initial={{ opacity: 0, scale: 0.95 }}
+  animate={{ opacity: 1, scale: 1 }}
+  exit={{ opacity: 0, scale: 0.95 }}
+>
+  <div><strong className="text-black">Full Name:</strong> {profile.fullName}</div>
+  <div><strong className="text-black">Username:</strong> {profile.username}</div>
+  <div><strong className="text-black">Email:</strong> {profile.email}</div>
+
+  <div className="flex flex-col items-center">
+    <strong className="text-black">Profile Picture:</strong>
+    <img
+      src={profile.pp.startsWith('http') ? profile.pp : `http://localhost:3001${profile.pp}`}
+      alt="Profile"
+      className="w-32 h-32 mt-4 rounded-full object-cover border-4 border-purple-500"
+    />
+  </div>
+
+  <motion.button
+    onClick={() => setEditMode(true)}
+    className="mt-6 px-6 py-3 bg-purple-500 hover:bg-purple-400 rounded-xl text-white transition-all duration-300"
+    whileTap={{ scale: 0.95 }}
+  >
+    Edit Profile
+  </motion.button>
+</motion.div>
+
             )
           ) : (
             <p className="text-black">Loading profile...</p>

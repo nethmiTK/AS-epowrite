@@ -18,7 +18,6 @@ const Dashboard = () => {
   const [showOptions, setShowOptions] = useState(null);
   const [expandedPosts, setExpandedPosts] = useState(new Set());
 
-
   useEffect(() => {
     const fetchProfileAndPosts = async () => {
       const token = localStorage.getItem('token');
@@ -37,6 +36,8 @@ const Dashboard = () => {
     };
     fetchProfileAndPosts();
   }, [author]);
+
+
   const toggleExpanded = (postId) => {
     setExpandedPosts(prev => {
       const newSet = new Set(prev);
@@ -48,7 +49,18 @@ const Dashboard = () => {
       return newSet;
     });
   };
+  const handleDelete = async (postId) => {
+    try {
+      await axios.delete(`http://localhost:3001/api/posts/${postId}`);
+      setPosts(posts.filter(post => post._id !== postId));
+      toast.success('Post deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting post:', err);
+      toast.error('Error deleting post');
+    }
+  };
   
+
   const handleLike = async (postId) => {
     if (!author) return alert('You must be logged in to like posts');
     try {
@@ -162,18 +174,6 @@ const Dashboard = () => {
     setIsModalOpen(true); // Open the modal for editing
   };
 
-  const handleDelete = async (postId) => {
-    try {
-      await axios.delete(`http://localhost:3001/api/posts/${postId}`);
-      const updated = await axios.get('http://localhost:3001/api/posts');
-      setPosts(updated.data.filter(post => post.author === author));
-      setSelectedPostId(null);
-      setShowOptions(null); // Close options after delete
-    } catch (err) {
-      console.error('Error deleting:', err);
-    }
-  };
-
   const handleOptionsToggle = (postId) => {
     setShowOptions(prev => (prev === postId ? null : postId));
   };
@@ -186,9 +186,6 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 px-4 py-6 sm:px-6 lg:px-8 pt-40">
       <div className="max-w-3xl mx-auto flex flex-col items-center justify-center">
-         
-        
-
         {notification && (
           <div className="mb-4 p-3 bg-green-100 border border-green-600 text-green-600 rounded text-sm">
             {notification}
@@ -206,6 +203,7 @@ const Dashboard = () => {
                 X
               </button>
               <h3 className="text-xl font-semibold mb-4">Edit Post</h3>
+
 
               {/* Image preview with the option to remove it */}
               {preview && (
@@ -291,7 +289,7 @@ const Dashboard = () => {
                     </button>
                     <button
                       onClick={() => handleDelete(post._id)}
-                      className="block px-4 py-2 text-red-500 hover:bg-red-100"
+                      className="block px-4 py-2 text-red-500 hover:bg-gray-100"
                     >
                       Delete
                     </button>
@@ -300,21 +298,21 @@ const Dashboard = () => {
               </div>
               <h2 className="text-xl font-semibold text-gray-800">{post.title}</h2>
               <p className="text-gray-700 mt-2">
-  {expandedPosts.has(post._id)
-    ? post.description
-    : post.description.length > 150
-      ? `${post.description.slice(0, 150)}...`
-      : post.description}
-</p>
+                {expandedPosts.has(post._id)
+                  ? post.description
+                  : post.description.length > 150
+                    ? `${post.description.slice(0, 150)}...`
+                    : post.description}
+              </p>
 
-{post.description.length > 150 && (
-  <button
-    onClick={() => toggleExpanded(post._id)}
-    className="text-blue-600 hover:underline mt-1 text-sm"
-  >
-    {expandedPosts.has(post._id) ? 'See Less' : 'See More'}
-  </button>
-)}
+              {post.description.length > 150 && (
+                <button
+                  onClick={() => toggleExpanded(post._id)}
+                  className="text-blue-600 hover:underline mt-1 text-sm"
+                >
+                  {expandedPosts.has(post._id) ? 'See Less' : 'See More'}
+                </button>
+              )}
 
               {/* Media preview */}
               {post.media && isImage(post.media) && (
@@ -336,54 +334,44 @@ const Dashboard = () => {
                 </button>
                 <button
                   onClick={() => handleShowComments(post._id)}
-                  className="ml-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300"
+                  className="ml-4 p-2 text-gray-500 hover:text-gray-700"
                 >
                   💬 {post.comments.length}
                 </button>
                 <button
                   onClick={() => handleShare(post._id)}
-                  className="ml-4 p-2 rounded-full bg-gray-200 hover:bg-gray-300"
+                  className="ml-4 p-2 text-gray-500 hover:text-gray-700"
                 >
-                  📤 Share
+                  🔗 Share
                 </button>
               </div>
 
-             {/* Comments */}
-{showComments === post._id && (
-  <div className="mt-4 space-y-4">
-    {post.comments.map((comment, idx) => (
-      <div key={idx} className="flex items-center gap-4">
-        {/* Profile Picture */}
-        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl">
-          {generateProfilePicture(comment.user)} {/* Use the commenter's profile picture */}
-        </div>
+              {showComments === post._id && (
+                <div className="mt-4">
+                  <input
+                    type="text"
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    placeholder="Add a comment"
+                    className="w-full p-3 border border-gray-300 rounded-lg"
+                  />
+                  <button
+                    onClick={() => handleCommentSubmit(post._id)}
+                    className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg"
+                  >
+                    Submit
+                  </button>
 
-        {/* Commenter's Name and Comment */}
-        <div>
-          <div className="font-semibold text-sm">{comment.user}</div> {/* Commenter's Username */}
-          <p className="text-gray-700">{comment.comment}</p> {/* Comment Text */}
-        </div>
-      </div>
-    ))}
-
-    <div className="flex items-center mt-4">
-      <input
-        type="text"
-        value={commentText}
-        onChange={(e) => setCommentText(e.target.value)}
-        placeholder="Add a comment"
-        className="flex-1 p-2 border border-gray-300 rounded-lg"
-      />
-      <button
-        onClick={() => handleCommentSubmit(post._id)}
-        className="ml-2 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-      >
-        Submit
-      </button>
-    </div>
-  </div>
-)}
-
+                  <div className="mt-4 space-y-4">
+                    {post.comments.map((comment, idx) => (
+                      <div key={idx} className="p-3 border-b border-gray-200">
+                        <p className="font-semibold">{comment.user}</p>
+                        <p className="text-gray-700">{comment.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
