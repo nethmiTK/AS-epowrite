@@ -14,6 +14,7 @@ router.get('/', async (req, res) => {
   }
 });
 
+
 router.post('/', upload.single('media'), async (req, res) => {
   const { title, description, author, authorName } = req.body;
   let media = null;
@@ -28,6 +29,34 @@ router.post('/', upload.single('media'), async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error creating post', error: error.message });
   }
+});
+// Delete post and send notification
+router.delete('/api/posts/:id', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    // Create notification
+    await Notification.create({
+      userEmail: post.author,
+      message: `Your post titled "${post.title}" was deleted by an admin.`,
+      date: new Date(),
+    });
+
+    await Post.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Post deleted and user notified' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get notifications for user
+router.get('/api/notifications', async (req, res) => {
+  const userEmail = req.query.email; // from frontend query
+  if (!userEmail) return res.status(400).json({ message: 'Email required' });
+
+  const notifications = await Notification.find({ userEmail }).sort({ date: -1 });
+  res.status(200).json(notifications);
 });
 
 

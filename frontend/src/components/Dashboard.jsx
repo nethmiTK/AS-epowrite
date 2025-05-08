@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+
 const Dashboard = () => {
   const [posts, setPosts] = useState([]);
   const [title, setTitle] = useState('');
@@ -8,6 +9,7 @@ const Dashboard = () => {
   const [media, setMedia] = useState(null);
   const [preview, setPreview] = useState(null);
   const [showForm, setShowForm] = useState(false);
+
   const [notification, setNotification] = useState('');
   const [author, setAuthor] = useState('');
   const [selectedPostId, setSelectedPostId] = useState(null);
@@ -188,8 +190,8 @@ const Dashboard = () => {
       <div className="max-w-3xl mx-auto flex flex-col items-center justify-center">
         {notification && (
           <div className="mb-4 p-3 bg-green-100 border border-green-600 text-green-600 rounded text-sm">
-            {notification}
-          </div>
+      <Notifications userEmail={userEmail} />
+      </div>
         )}
 
         {/* Modal for editing a post */}
