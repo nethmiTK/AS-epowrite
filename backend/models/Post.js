@@ -4,7 +4,8 @@ const postSchema = new mongoose.Schema(
   {
     title: String,
     description: String,
-    author: String,
+    author: String,//email
+    authorName: String, // new field
     media: String,
     likes: {
       type: [String],

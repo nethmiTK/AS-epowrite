@@ -16,6 +16,8 @@ const Dashboard = () => {
   const [showComments, setShowComments] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showOptions, setShowOptions] = useState(null);
+  const [expandedPosts, setExpandedPosts] = useState(new Set());
+
 
   useEffect(() => {
     const fetchProfileAndPosts = async () => {
@@ -35,7 +37,18 @@ const Dashboard = () => {
     };
     fetchProfileAndPosts();
   }, [author]);
-
+  const toggleExpanded = (postId) => {
+    setExpandedPosts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
+  };
+  
   const handleLike = async (postId) => {
     if (!author) return alert('You must be logged in to like posts');
     try {
@@ -254,7 +267,7 @@ const Dashboard = () => {
                 <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl">
                   {generateProfilePicture(post.author)}
                 </div>
-                <p className="font-semibold text-lg text-gray-800">{post.author}</p>
+                <p className="font-semibold text-lg text-gray-800">{post.authorName}</p> 
                 <p className="text-sm text-gray-500">{new Date(post.createdAt).toLocaleString()}</p>
 
                 <button
@@ -286,7 +299,22 @@ const Dashboard = () => {
                 )}
               </div>
               <h2 className="text-xl font-semibold text-gray-800">{post.title}</h2>
-              <p className="text-gray-700 mt-2">{post.description}</p>
+              <p className="text-gray-700 mt-2">
+  {expandedPosts.has(post._id)
+    ? post.description
+    : post.description.length > 150
+      ? `${post.description.slice(0, 150)}...`
+      : post.description}
+</p>
+
+{post.description.length > 150 && (
+  <button
+    onClick={() => toggleExpanded(post._id)}
+    className="text-blue-600 hover:underline mt-1 text-sm"
+  >
+    {expandedPosts.has(post._id) ? 'See Less' : 'See More'}
+  </button>
+)}
 
               {/* Media preview */}
               {post.media && isImage(post.media) && (

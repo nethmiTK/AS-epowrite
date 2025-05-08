@@ -154,7 +154,7 @@ const HomePage = () => {
                       {authorInitial}
                     </div>
                     <div>
-                      <p className="font-semibold text-base sm:text-lg text-gray-800">{post.author}</p>
+                      <p className="font-semibold text-base sm:text-lg text-gray-800">{post.authorName}</p>
                       <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p>
                     </div>
                   </div>

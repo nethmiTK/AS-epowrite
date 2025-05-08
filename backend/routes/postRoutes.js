@@ -3,6 +3,7 @@ const Post = require('../models/Post');
 const upload = require('../middleware/upload');
 const router = express.Router();
 
+
 // Fetch all posts
 router.get('/', async (req, res) => {
   try {
@@ -13,22 +14,22 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Create a new post
 router.post('/', upload.single('media'), async (req, res) => {
-  const { title, description, author } = req.body;
+  const { title, description, author, authorName } = req.body;
   let media = null;
   if (req.file) {
     media = req.file.path;
   }
 
   try {
-    const newPost = new Post({ title, description, author, media });
+    const newPost = new Post({ title, description, author, authorName, media });
     await newPost.save();
     res.status(201).json(newPost);
   } catch (error) {
     res.status(500).json({ message: 'Error creating post', error: error.message });
   }
 });
+
 
 // Toggle like
 router.post('/:postId/like', async (req, res) => {

@@ -74,11 +74,12 @@ const Profile = () => {
   };
 
   return (
-<div className="min-h-screen flex items-center justify-center bg-white px-4">
+<div className="min-h-screen flex items-center text-center bg-white px-4">
 <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop />
       <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-2xl z-10 text-black">
-        <h2 className="text-3xl font-extrabold justify-center text-black mb-4">👤 Profile Settings</h2>
+        <h2 className="text-3xl font-extrabold text-center text-black mb-4">👤 Profile Settings</h2>
         <AnimatePresence mode="wait">
+          
           {profile ? (
             editMode ? (
               <motion.form
