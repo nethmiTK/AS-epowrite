@@ -90,8 +90,8 @@ const Profile = () => {
                 exit={{ opacity: 0, scale: 0.95 }}
               >
                 {['fullName', 'username'].map((field, idx) => (
-                  <motion.div key={idx} className="flex flex-col w-full text-center">
-                    <label className="mb-2 text-sm font-semibold text-center text-black">
+                  <motion.div key={idx} className="flex flex-col w-full  ">
+                    <label className="mb-2 text-sm font-semibold  text-black">
                       {field === 'fullName' ? 'Full Name' : field.charAt(0).toUpperCase() + field.slice(1)}
                     </label>
                     <motion.input
@@ -106,7 +106,7 @@ const Profile = () => {
                     />
                   </motion.div>
                 ))}
-                <div className="flex flex-col text-center">
+                <div className="flex flex-col  ">
                   <label className="mb-2 text-sm font-semibold text-black">Profile Picture</label>
                   <input
                     type="file"
