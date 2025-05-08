@@ -1,6 +1,7 @@
+// AdminPosts.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Pencil, Trash2, Check } from 'lucide-react';
+import { Pencil, Trash2, Check, AlertTriangle, FileText, Flag } from 'lucide-react';
 
 const A = () => {
   const [posts, setPosts] = useState([]);
@@ -9,6 +10,7 @@ const A = () => {
   const [editMode, setEditMode] = useState({});
   const [editedPostData, setEditedPostData] = useState({});
   const [showMoreMap, setShowMoreMap] = useState({});
+  const [activeTab, setActiveTab] = useState('all'); // all, reported, alert
 
   useEffect(() => {
     fetchPosts();
@@ -86,143 +88,170 @@ const A = () => {
     post.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const alertPosts = reportedPosts.filter(post => post.reports.length > 0);
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString();
   };
+
+  const renderPostCard = (post, isReported = false) => (
+    <div key={post._id} className={`p-6 rounded-lg shadow-md ${isReported ? 'bg-red-50 border border-red-300' : 'bg-white'}`}>
+      <div className="mb-3">
+        <p className="font-semibold text-lg text-gray-800">{post.author}</p>
+        <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p>
+      </div>
+
+      {editMode[post._id] ? (
+        <>
+          <input
+            type="text"
+            value={editedPostData[post._id]?.title || ''}
+            onChange={(e) => handleEditChange(post._id, 'title', e.target.value)}
+            className="w-full p-2 mb-2 border border-gray-300 rounded"
+          />
+          <textarea
+            value={editedPostData[post._id]?.description || ''}
+            onChange={(e) => handleEditChange(post._id, 'description', e.target.value)}
+            className="w-full p-2 mb-2 border border-gray-300 rounded"
+            rows={3}
+          />
+        </>
+      ) : (
+        <>
+          <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
+          <p className="text-gray-700 mb-2">
+            {post.description.length > 200 ? (
+              showMoreMap[post._id] ? (
+                <>
+                  {post.description}{' '}
+                  <button
+                    onClick={() => toggleShowMore(post._id)}
+                    className="text-blue-600 hover:underline text-sm"
+                  >
+                    Show less
+                  </button>
+                </>
+              ) : (
+                <>
+                  {post.description.slice(0, 200)}...{' '}
+                  <button
+                    onClick={() => toggleShowMore(post._id)}
+                    className="text-blue-600 hover:underline text-sm"
+                  >
+                    Show more
+                  </button>
+                </>
+              )
+            ) : (
+              post.description
+            )}
+          </p>
+        </>
+      )}
+
+      {post.media && /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(post.media) && (
+        <img
+          src={`http://localhost:3001/${post.media}`}
+          alt="Post"
+          className="w-full h-auto rounded-lg mb-4"
+        />
+      )}
+
+      <div className="flex gap-2 mt-4">
+        {editMode[post._id] ? (
+          <button
+            onClick={() => handleEditSave(post._id)}
+            title="Save"
+            className="p-2 bg-green-600 text-white rounded-full hover:bg-green-700"
+          >
+            <Check size={18} />
+          </button>
+        ) : (
+          <button
+            onClick={() => handleEditToggle(post)}
+            title="Edit"
+            className="p-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600"
+          >
+            <Pencil size={18} />
+          </button>
+        )}
+        <button
+          onClick={() => handleDelete(post._id)}
+          title="Delete"
+          className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+        >
+          <Trash2 size={18} />
+        </button>
+      </div>
+
+      {/* Report Section */}
+      {isReported && post.reports?.length > 0 && (
+        <div className="bg-white p-3 rounded border mt-4">
+          <h4 className="text-md font-semibold text-red-700 mb-2">Reports:</h4>
+          {post.reports.map((report, index) => (
+            <div key={index} className="border-t py-2">
+              <p className="text-sm"><strong>Reporter:</strong> {report.reporterName}</p>
+              <p className="text-sm"><strong>Reason:</strong> {report.reason}</p>
+              <p className="text-xs text-gray-500">{formatDate(report.reportedAt)}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-10 pt-32 text-gray-800">
       <div className="max-w-5xl mx-auto">
         <h1 className="text-4xl font-bold text-center text-blue-700 mb-6">Welcome, Admin</h1>
 
-        <input
-          type="text"
-          placeholder="Search posts by title..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm"
-        />
-
-        <div className="space-y-6">
-          {filteredPosts.map((post) => (
-            <div key={post._id} className="bg-white p-6 rounded-lg shadow-md">
-              <div className="mb-3">
-                <p className="font-semibold text-lg text-gray-800">{post.author}</p>
-                <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p>
-              </div>
-
-              {editMode[post._id] ? (
-                <>
-                  <input
-                    type="text"
-                    value={editedPostData[post._id]?.title || ''}
-                    onChange={(e) => handleEditChange(post._id, 'title', e.target.value)}
-                    className="w-full p-2 mb-2 border border-gray-300 rounded"
-                  />
-                  <textarea
-                    value={editedPostData[post._id]?.description || ''}
-                    onChange={(e) => handleEditChange(post._id, 'description', e.target.value)}
-                    className="w-full p-2 mb-2 border border-gray-300 rounded"
-                    rows={3}
-                  />
-                </>
-              ) : (
-                <>
-                  <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
-                  <p className="text-gray-700 mb-2">
-                    {post.description.length > 200 ? (
-                      showMoreMap[post._id] ? (
-                        <>
-                          {post.description}{' '}
-                          <button
-                            onClick={() => toggleShowMore(post._id)}
-                            className="text-blue-600 hover:underline text-sm"
-                          >
-                            Show less
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          {post.description.slice(0, 200)}...{' '}
-                          <button
-                            onClick={() => toggleShowMore(post._id)}
-                            className="text-blue-600 hover:underline text-sm"
-                          >
-                            Show more
-                          </button>
-                        </>
-                      )
-                    ) : (
-                      post.description
-                    )}
-                  </p>
-                </>
-              )}
-
-              {post.media && /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(post.media) && (
-                <img
-                  src={`http://localhost:3001/${post.media}`}
-                  alt="Post"
-                  className="w-full h-auto rounded-lg mb-4"
-                />
-              )}
-
-              <div className="flex gap-2 mt-4">
-                {editMode[post._id] ? (
-                  <button
-                    onClick={() => handleEditSave(post._id)}
-                    title="Save"
-                    className="p-2 bg-green-600 text-white rounded-full hover:bg-green-700"
-                  >
-                    <Check size={18} />
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleEditToggle(post)}
-                    title="Edit"
-                    className="p-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600"
-                  >
-                    <Pencil size={18} />
-                  </button>
-                )}
-                <button
-                  onClick={() => handleDelete(post._id)}
-                  title="Delete"
-                  className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            </div>
-          ))}
+        <div className="flex justify-center gap-4 mb-6">
+          <button
+            className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'all' ? 'bg-blue-600 text-white' : 'bg-white border'}`}
+            onClick={() => setActiveTab('all')}
+          >
+            <FileText size={18} /> All Posts
+          </button>
+          <button
+            className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'reported' ? 'bg-yellow-500 text-white' : 'bg-white border'}`}
+            onClick={() => setActiveTab('reported')}
+          >
+            <Flag size={18} /> Reported Posts
+          </button>
+          <button
+            className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'alert' ? 'bg-red-600 text-white' : 'bg-white border'}`}
+            onClick={() => setActiveTab('alert')}
+          >
+            <AlertTriangle size={18} /> Alert Posts
+          </button>
         </div>
 
-        {/* Reported Posts Section */}
-        <h2 className="text-3xl font-bold mt-10 mb-4 text-red-600">Reported Posts</h2>
-        <div className="space-y-6">
-          {reportedPosts.map((post) => (
-            <div key={post._id} className="bg-red-50 border border-red-300 p-6 rounded-lg shadow-md">
-              <h3 className="text-xl font-semibold text-red-800">{post.title}</h3>
-              <p className="text-sm text-gray-600 mb-2">By: {post.author} | {formatDate(post.createdAt)}</p>
-              <p className="text-gray-800 mb-2">{post.description}</p>
-
-              <div className="bg-white p-3 rounded border mt-4">
-                <h4 className="text-md font-semibold text-red-700 mb-2">Reports:</h4>
-                {post.reports.length === 0 ? (
-                  <p className="text-gray-600">No detailed report.</p>
-                ) : (
-                  post.reports.map((report, index) => (
-                    <div key={index} className="border-t py-2">
-                      <p className="text-sm"><strong>Reporter:</strong> {report.reporterName}</p>
-                      <p className="text-sm"><strong>Reason:</strong> {report.reason}</p>
-                      <p className="text-xs text-gray-500">{formatDate(report.reportedAt)}</p>
-                    </div>
-                  ))
-                )}
-              </div>
+        {activeTab === 'all' && (
+          <>
+            <input
+              type="text"
+              placeholder="Search posts by title..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm"
+            />
+            <div className="space-y-6">
+              {filteredPosts.map((post) => renderPostCard(post))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
+
+        {activeTab === 'reported' && (
+          <div className="space-y-6">
+            {reportedPosts.map((post) => renderPostCard(post, true))}
+          </div>
+        )}
+
+        {activeTab === 'alert' && (
+          <div className="space-y-6">
+            {alertPosts.map((post) => renderPostCard(post, true))}
+          </div>
+        )}
       </div>
     </div>
   );
