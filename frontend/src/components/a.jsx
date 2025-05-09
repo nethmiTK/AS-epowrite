@@ -24,6 +24,22 @@ const A = () => {
     } catch (err) {
       console.error('Error fetching posts:', err);
     }
+    {posts.map((post) => (
+  <div key={post._id} className="border p-4 rounded mb-4">
+    {post.isDeleted ? (
+      <p className="text-red-500 font-semibold">
+        This post is reported, so it can't be shown.
+      </p>
+    ) : (
+      <>
+        <h2 className="text-xl font-bold">{post.title}</h2>
+        <p>{post.description}</p>
+        <p className="text-sm text-gray-500">Author: {post.author}</p>
+      </>
+    )}
+  </div>
+))}
+
   };
   // Define the soft delete function
 const handleSoftDelete = async (postId) => {
@@ -196,13 +212,14 @@ const handleSoftDelete = async (postId) => {
         >
           <Trash2 size={18} />
         </button>
-        <button
+       <button
   onClick={() => handleSoftDelete(post._id)}
   title="Soft Delete"
   className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
 >
-  <Flag size={18} />
+  🗑️
 </button>
+
       </div>
 
       {/* Report Section */}
