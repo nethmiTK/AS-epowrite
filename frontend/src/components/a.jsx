@@ -25,6 +25,20 @@ const A = () => {
       console.error('Error fetching posts:', err);
     }
   };
+  // Define the soft delete function
+const handleSoftDelete = async (postId) => {
+  if (window.confirm('Are you sure you want to soft delete this post?')) {
+    try {
+      // Send a request to the backend to update the 'isDeleted' field
+      await axios.patch(`http://localhost:3001/api/posts/${postId}/softdelete`);
+      // Filter out the soft-deleted post from the UI
+      setPosts(posts.filter(post => post._id !== postId));
+      setReportedPosts(reportedPosts.filter(post => post._id !== postId));
+    } catch (err) {
+      console.error('Error soft deleting post:', err);
+    }
+  }
+};
 
   const fetchReportedPosts = async () => {
     try {
@@ -182,6 +196,13 @@ const A = () => {
         >
           <Trash2 size={18} />
         </button>
+        <button
+  onClick={() => handleSoftDelete(post._id)}
+  title="Soft Delete"
+  className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+>
+  <Flag size={18} />
+</button>
       </div>
 
       {/* Report Section */}
