@@ -1,11 +1,12 @@
-const mongoose = require('mongoose');  // Add this line at the top of your file
+// models/Post.js
+const mongoose = require('mongoose');
 
 const postSchema = new mongoose.Schema(
   {
     title: String,
     description: String,
-    author: String,//email
-    authorName: String, // new field
+    author: String,
+    authorName: String,
     media: String,
     likes: {
       type: [String],
@@ -27,15 +28,19 @@ const postSchema = new mongoose.Schema(
     },
     reports: [
       {
-        reportedBy: String,  // user ID or username
-        reporterName: String, // new field
-        reason: String,       // new field
+        reportedBy: String,
+        reporterName: String,
+        reason: String,
         reportedAt: {
           type: Date,
           default: Date.now,
         },
       },
     ],
+    isDeleted: {
+      type: Boolean,
+      default: false, // added for soft delete
+    },
   },
   {
     timestamps: true,

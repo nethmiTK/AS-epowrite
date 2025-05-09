@@ -117,7 +117,21 @@ router.put('/:postId', upload.single('media'), async (req, res) => {
     res.status(500).json({ message: 'Error updating post', error: error.message });
   }
 });
+// Soft delete route
+router.put('/:postId/soft-delete', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
 
+    post.deleted = true;  // Assuming you have a `deleted` field in your schema
+    await post.save();
+    res.status(200).json(post);
+  } catch (error) {
+    res.status(500).json({ message: 'Error soft deleting post', error });
+  }
+});
 // Partial update
 router.patch('/:postId', upload.single('media'), async (req, res) => {
   const { title, description, author } = req.body;

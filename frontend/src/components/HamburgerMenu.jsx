@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FiMenu, FiX, FiHome, FiUser, FiLogOut, FiEdit } from 'react-icons/fi';
+import { FiMenu, FiX, FiHome, FiUser, FiLogOut, FiEdit, FiBell } from 'react-icons/fi';
+import axios from 'axios';
 import logo from '../assets/epowrite.png';
 
 const Hamburger = ({ user }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -27,6 +30,15 @@ const Hamburger = ({ user }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    if (user?.email) {
+      axios
+        .get(`http://localhost:3001/api/notifications/${user.email}`)
+        .then((res) => setNotifications(res.data))
+        .catch((err) => console.error(err));
+    }
+  }, [user]);
+
   if (hideNavbar) return null;
 
   const activeLinkStyle = 'text-white bg-purple-500 px-3 py-1 rounded-md';
@@ -35,7 +47,6 @@ const Hamburger = ({ user }) => {
   return (
     <header className="bg-[#f8f8f8] shadow-lg fixed w-full z-50 font-bold overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-
         {/* LOGO */}
         <div className="flex items-center gap-3 order-1">
           <img src={logo} alt="Epowrite Logo" className="w-20 h-auto" />
@@ -95,18 +106,39 @@ const Hamburger = ({ user }) => {
 
         {/* USER WELCOME SECTION */}
         {user && (
-          <div
-            className="flex items-center gap-2 cursor-pointer order-4"
-            onClick={handleProfileClick}
-          >
-            <img
-              src={user.pp?.startsWith('http') ? user.pp : `http://localhost:3001${user.pp}`}
-              alt="Profile"
-              className="w-10 h-10 md:w-14 md:h-14 rounded-full border-2 border-purple-500 object-cover hover:scale-110 transition duration-300"
-            />
-            <span className="text-base md:text-lg text-purple-500 truncate max-w-[140px] md:max-w-none">
-              Welcome, {user.fullName}
-            </span>
+          <div className="flex items-center gap-4 order-4">
+            {/* Notification Icon */}
+            <div className="relative">
+              <FiBell
+                size={22}
+                className="text-purple-500 cursor-pointer hover:text-purple-600"
+                onClick={() => setShowNotifications(!showNotifications)}
+              />
+              {notifications.length > 0 && (
+                <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs rounded-full px-1">
+                  {notifications.length}
+                </span>
+              )}
+            </div>
+
+            {/* Profile Section */}
+            <div
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={handleProfileClick}
+            >
+              <img
+                src={
+                  user.pp?.startsWith('http')
+                    ? user.pp
+                    : `http://localhost:3001${user.pp}`
+                }
+                alt="Profile"
+                className="w-10 h-10 md:w-14 md:h-14 rounded-full border-2 border-purple-500 object-cover hover:scale-110 transition duration-300"
+              />
+              <span className="text-base md:text-lg text-purple-500 truncate max-w-[140px] md:max-w-none">
+                Welcome, {user.fullName}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -156,6 +188,31 @@ const Hamburger = ({ user }) => {
             >
               <FiLogOut /> Logout
             </div>
+          )}
+        </div>
+      )}
+
+      {/* Notification Modal */}
+      {showNotifications && (
+        <div className="absolute right-4 top-[100%] mt-2 w-80 bg-white shadow-lg rounded-lg border border-purple-200 z-50 max-h-96 overflow-y-auto">
+          <div className="p-4 border-b font-bold text-purple-600">Notifications</div>
+          {notifications.length === 0 ? (
+            <div className="p-4 text-sm text-gray-500">No notifications</div>
+          ) : (
+            notifications.map((note, i) => (
+              <div key={i} className="p-3 text-sm border-b hover:bg-purple-50">
+                <p>
+                  <span className="font-semibold">Reason:</span> {note.reason}
+                </p>
+                <p>
+                  <span className="font-semibold">Author:</span> {note.author}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {new Date(note.date).toLocaleDateString()} |{' '}
+                  {new Date(note.date).toLocaleTimeString()}
+                </p>
+              </div>
+            ))
           )}
         </div>
       )}

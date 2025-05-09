@@ -5,6 +5,8 @@ const path = require('path');
 const authRoutes = require('./routes/auth'); // Your login/register routes
 const userRoutes = require('./routes/userRoutes'); // Your profile routes
 const postRoutes = require('./routes/postRoutes'); // Your post routes
+const notificationRoutes = require('./routes/notifications');
+
 require('dotenv').config();
 
 const app = express();
@@ -17,6 +19,7 @@ app.use(cors());
 // Serve uploaded images
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+app.use('/api/notifications', notificationRoutes);
 
 // Routes
 app.use('/api/auth', authRoutes); 

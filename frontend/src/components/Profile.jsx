@@ -89,10 +89,10 @@ const Profile = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
               >
-                {['fullName', 'username'].map((field, idx) => (
+                {['password','username'].map((field, idx) => (
                   <motion.div key={idx} className="flex flex-col w-full  ">
                     <label className="mb-2 text-sm font-semibold  text-black">
-                      {field === 'fullName' ? 'Full Name' : field.charAt(0).toUpperCase() + field.slice(1)}
+                      {field === 'password' ? 'password' : field.charAt(0).toUpperCase() + field.slice(1)}
                     </label>
                     <motion.input
                       type="text"
