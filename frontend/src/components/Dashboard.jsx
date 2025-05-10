@@ -268,8 +268,10 @@ const Dashboard = () => {
                   {generateProfilePicture(post.author)}
                 </div>
                 <p className="font-semibold text-lg text-gray-800">{post.authorName}</p> 
-                <p className="text-sm text-gray-500">{new Date(post.createdAt).toLocaleString()}</p>
-
+                <p className="text-sm text-gray-500">{new Date(post.createdAt).toLocaleString()}{post.isDeleted && (
+    <span className="text-red-500 font-semibold">(🚫 Reported and disabled🙅 Removed by admin .)</span>
+  )}</p>
+ 
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
