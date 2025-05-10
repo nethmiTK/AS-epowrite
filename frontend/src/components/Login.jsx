@@ -11,16 +11,18 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Validation schema using Yup
+// Yup validation
 const validationSchema = Yup.object({
-  email: Yup.string().email('Invalid email').required('Required'),
+  username: Yup.string().required('Required'),
   password: Yup.string().required('Required'),
 });
+
 
 const Login = () => {
   const navigate = useNavigate();
 
   const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
-    if (values.email === 'email-a@gmail.com' && values.password === '12345') {
+    if (values.username === 'email-a@gmail.com' && values.password === '12345') {
       navigate('/a');
       return;
     }
@@ -56,10 +58,11 @@ const Login = () => {
         <p className="text-center text-sm text-darkGrey">Sign in to continue</p>
 
         <Formik
-          initialValues={{ email: '', password: '' }}
-          validationSchema={validationSchema}
-          onSubmit={handleSubmit}
-        >
+  initialValues={{ username: '', password: '' }}
+  validationSchema={validationSchema}
+  onSubmit={handleSubmit}
+>
+
           {({ isSubmitting, errors }) => (
             <Form className="space-y-6 mt-6">
               {errors.general && (
@@ -69,18 +72,19 @@ const Login = () => {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-darkGrey mb-1">Email</label>
-                <div className="flex items-center bg-white/20 border border-darkGrey/30 rounded-xl p-3">
-                  <FaEnvelope className="text-darkGrey mr-3" />
-                  <Field
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    className="bg-transparent w-full text-darkGrey placeholder-darkGrey focus:outline-none"
-                  />
-                </div>
-                <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
-              </div>
+  <label className="block text-sm font-medium text-darkGrey mb-1">Username</label>
+  <div className="flex items-center bg-white/20 border border-darkGrey/30 rounded-xl p-3">
+    <FaEnvelope className="text-darkGrey mr-3" />
+    <Field
+      type="text"
+      name="username"
+      placeholder="Username"
+      className="bg-transparent w-full text-darkGrey placeholder-darkGrey focus:outline-none"
+    />
+  </div>
+  <ErrorMessage name="username" component="div" className="text-red-500 text-sm mt-1" />
+</div>
+
 
               <div>
                 <label className="block text-sm font-medium text-darkGrey mb-1">Password</label>
