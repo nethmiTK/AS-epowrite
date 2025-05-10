@@ -16,24 +16,29 @@ const HomePage = () => {
   const [reportedPosts, setReportedPosts] = useState({});
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const resPosts = await axios.get('http://localhost:3001/api/posts');
-        setPosts(resPosts.data);
+  const fetchData = async () => {
+    try {
+      // Fetch posts
+      const resPosts = await axios.get('http://localhost:3001/api/posts');
+      // Filter out posts that are marked as deleted
+      const activePosts = resPosts.data.filter(post => !post.isDeleted);
+      setPosts(activePosts);
 
-        const token = localStorage.getItem('token');
-        if (token) {
-          const resProfile = await axios.get('http://localhost:3001/api/users/profile', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setProfile(resProfile.data);
-        }
-      } catch (err) {
-        console.error('Error fetching data:', err);
+      // Fetch profile if token exists
+      const token = localStorage.getItem('token');
+      if (token) {
+        const resProfile = await axios.get('http://localhost:3001/api/users/profile', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setProfile(resProfile.data);
       }
-    };
-    fetchData();
-  }, []);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+    }
+  };
+
+  fetchData();
+}, []);  // The empty dependency array ensures this effect runs only once when the component mounts
 
   const isImage = (filename) => /.(jpg|jpeg|png|gif|bmp|webp)$/i.test(filename);
 
