@@ -1,216 +1,189 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { motion } from 'framer-motion';
-import { toast } from 'react-toastify';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Profile = () => {
-  const [profile, setProfile] = useState({});
+  const [profile, setProfile] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     username: '',
     email: '',
     pp: null,
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
   });
+  const [notification, setNotification] = useState('');
   const [preview, setPreview] = useState(null);
 
-  // Fetch profile data
-  const fetchProfile = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:3001/api/users/profile', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setProfile(res.data);
-      setFormData({
-        fullName: res.data.fullName,
-        username: res.data.username,
-        email: res.data.email,
-        pp: res.data.pp,
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-      });
-    } catch (err) {
-      toast.error('Failed to load profile');
-    }
-  };
-
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please login.');
+      return;
+    }
+    const fetchProfile = async () => {
+      try {
+        const res = await axios.get('http://localhost:3001/api/users/profile', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setProfile(res.data);
+        setFormData({
+          fullName: res.data.fullName,
+          username: res.data.username,
+          email: res.data.email,
+          pp: null,
+        });
+        setNotification('');
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+        setNotification('Error fetching profile. Please check your token or API connection.');
+      }
+    };
     fetchProfile();
   }, []);
 
-  // Handle form input changes
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === 'pp') {
-      setFormData({ ...formData, pp: files[0] });
-      setPreview(URL.createObjectURL(files[0]));
-    } else {
-      setFormData({ ...formData, [name]: value });
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setFormData({ ...formData, pp: file });
+    if (file) {
+      const objectURL = URL.createObjectURL(file);
+      setPreview(objectURL);
     }
   };
 
-  // Handle profile update
   const handleUpdate = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
-
-    if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
-      return toast.error('New passwords do not match');
-    }
-
     const data = new FormData();
     data.append('fullName', formData.fullName);
     data.append('username', formData.username);
     data.append('email', formData.email);
-
-    if (formData.pp instanceof File) {
-      data.append('pp', formData.pp); // Attach profile picture if selected
-    }
-
-    if (formData.currentPassword) {
-      data.append('currentPassword', formData.currentPassword);
-      data.append('newPassword', formData.newPassword);
-    }
-
+    if (formData.pp instanceof File) data.append('pp', formData.pp);
     try {
       const res = await axios.put('http://localhost:3001/api/users/update', data, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfile(res.data.user);
-      toast.success(res.data.message || 'Profile updated!');
+      setNotification(res.data.message);
       setEditMode(false);
-      setPreview(null);
-
-      setFormData((prev) => ({
-        ...prev,
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-      }));
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Update failed');
+      console.error('Error updating profile:', err);
+      setNotification(err.response?.data?.message || 'Profile update failed.');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 text-white flex justify-center items-center p-6">
-      <div className="bg-black p-6 rounded-2xl shadow-xl max-w-xl w-full">
-        <h1 className="text-3xl font-bold text-pink-500 mb-6 text-center">User Profile</h1>
-
-        <div className="flex justify-center mb-4">
-          <img
-            src={preview ? preview : `http://localhost:3001${profile.pp}`}
-            alt="Profile"
-            className="w-32 h-32 rounded-full border-4 border-pink-500 object-cover"
-          />
-        </div>
-
-        <form onSubmit={handleUpdate} className="space-y-4">
-          <motion.div className="flex flex-col">
-            <label className="text-sm mb-1">Full Name</label>
-            <input
-              type="text"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              className="p-3 rounded bg-gray-100 text-black"
-              disabled={!editMode}
-            />
-          </motion.div>
-
-          <motion.div className="flex flex-col">
-            <label className="text-sm mb-1">Username</label>
-            <input
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              className="p-3 rounded bg-gray-100 text-black"
-              disabled={!editMode}
-            />
-          </motion.div>
-
-          <motion.div className="flex flex-col">
-            <label className="text-sm mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="p-3 rounded bg-gray-100 text-black"
-              disabled={!editMode}
-            />
-          </motion.div>
-
-          {editMode && (
-            <>
-              <motion.div className="flex flex-col">
-                <label className="text-sm mb-1">Profile Picture</label>
-                <input type="file" name="pp" accept="image/*" onChange={handleChange} />
-              </motion.div>
-
-              <motion.div className="flex flex-col">
-                <label className="text-sm mb-1">Current Password</label>
-                <input
-                  type="password"
-                  name="currentPassword"
-                  value={formData.currentPassword}
-                  onChange={handleChange}
-                  className="p-3 rounded bg-gray-100 text-black"
-                />
-              </motion.div>
-
-              <motion.div className="flex flex-col">
-                <label className="text-sm mb-1">New Password</label>
-                <input
-                  type="password"
-                  name="newPassword"
-                  value={formData.newPassword}
-                  onChange={handleChange}
-                  className="p-3 rounded bg-gray-100 text-black"
-                />
-              </motion.div>
-
-              <motion.div className="flex flex-col">
-                <label className="text-sm mb-1">Confirm New Password</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="p-3 rounded bg-gray-100 text-black"
-                />
-              </motion.div>
-            </>
-          )}
-
-          <div className="flex justify-between mt-6">
-            <button
-              type="button"
-              className="bg-pink-500 hover:bg-pink-400 text-white font-semibold py-2 px-6 rounded-xl"
-              onClick={() => {
-                setEditMode(!editMode);
-                if (!editMode) setPreview(null);
-              }}
-            >
-              {editMode ? 'Cancel' : 'Edit'}
-            </button>
-
-            {editMode && (
-              <button
-                type="submit"
-                className="bg-green-500 hover:bg-green-400 text-white font-semibold py-2 px-6 rounded-xl"
+<div className="min-h-screen flex items-center justify-center bg-white p-6">
+      <div className="bg-white p-8 rounded-3xl text-center shadow-2xl w-full max-w-2xl z-10 text-black">
+        <h2 className="text-3xl font-extrabold text-black mb-4">👤 Profile Settings</h2>
+        {notification && (
+          <motion.p className="mb-4 text-red-400" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            {notification}
+          </motion.p>
+        )}
+        <AnimatePresence mode="wait">
+          {profile ? (
+            editMode ? (
+              <motion.form
+                onSubmit={handleUpdate}
+                className="w-full space-y-6"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
               >
-                Save
-              </button>
-            )}
-          </div>
-        </form>
+                {['fullName', 'username', 'email'].map((field, idx) => (
+                  <motion.div key={idx} className="flex flex-col w-full">
+                    <label className="mb-2 text-sm font-semibold text-black">
+                      {field === 'fullName' ? 'Full Name' : field.charAt(0).toUpperCase() + field.slice(1)}
+                    </label>
+                    <motion.input
+                      type={field === 'email' ? 'email' : 'text'}
+                      name={field}
+                      value={formData[field]}
+                      onChange={handleChange}
+                      className="p-4 rounded-xl bg-gray-100 border-2 border-purple-400 focus:ring-2 focus:ring-purple-500 text-black"
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ duration: 0.4, ease: 'easeOut' }}
+                    />
+                  </motion.div>
+                ))}
+                <div className="flex flex-col text-center ">
+                  <label className="mb-2 text-sm font-semibold text-center text-black">Profile Picture</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="p-4 rounded-xl bg-gray-100 border-2 border-purple-400 focus:ring-2 focus:ring-purple-500"
+                  />
+                  {preview && (
+                    <div className="mt-6 flex justify-center relative">
+                      <img
+                        src={preview}
+                        alt="Profile Preview"
+                        className="w-40 h-40 rounded-full object-cover border-4 border-purple-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPreview(null)}
+                        className="absolute top-0 right-0 bg-white rounded-full p-1 text-purple-600 hover:text-purple-800"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-between mt-6">
+                  <motion.button
+                    type="button"
+                    onClick={() => { setEditMode(false); setNotification(''); }}
+                    className="px-6 py-3 bg-gray-300 hover:bg-gray-400 rounded-xl text-black transition-all duration-300"
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    type="submit"
+                    className="px-6 py-3 bg-purple-500 hover:bg-purple-400 rounded-xl text-white transition-all duration-300"
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Save Changes
+                  </motion.button>
+                </div>
+              </motion.form>
+            ) : (
+              <motion.div
+                className="space-y-6 w-full text-center"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+              >
+                <div><strong className="text-black">Full Name:</strong> {profile.fullName}</div>
+                <div><strong className="text-black">Username:</strong> {profile.username}</div>
+                <div><strong className="text-black">Email:</strong> {profile.email}</div>
+                <div className="flex flex-col items-center">
+                  <strong className="text-black">Profile Picture:</strong>
+                  <img
+                    src={profile.pp.startsWith('http') ? profile.pp : `http://localhost:3001${profile.pp}`}
+                    alt="Profile"
+                    className="w-32 h-32 mt-4 rounded-full object-cover border-4 border-purple-500"
+                  />
+                </div>
+                <motion.button
+                  onClick={() => setEditMode(true)}
+                  className="mt-6 px-6 py-3 bg-purple-500 hover:bg-purple-400 rounded-xl text-white transition-all duration-300"
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Edit Profile
+                </motion.button>
+              </motion.div>
+            )
+          ) : (
+            <p className="text-black">Loading profile...</p>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
