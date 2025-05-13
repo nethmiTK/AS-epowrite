@@ -1,9 +1,7 @@
- import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import ReactQuill from 'react-quill'; // Import ReactQuill
-import 'react-quill/dist/quill.snow.css'; // Import Quill styles
 
 const CreatePost = () => {
   const [posts, setPosts] = useState([]);
@@ -13,12 +11,11 @@ const CreatePost = () => {
   const [preview, setPreview] = useState(null);
   const [author, setAuthor] = useState('');
   const [authorname, setAuthorname] = useState('');
+
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [userLikes, setUserLikes] = useState(new Set());
   const [showComments, setShowComments] = useState(null);
-
-  const quillRef = useRef(null); // Reference for ReactQuill
 
   useEffect(() => {
     const fetchProfileAndPosts = async () => {
@@ -104,44 +101,40 @@ const CreatePost = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  // Get the plain text content from the ReactQuill editor
-  const plainDescription = quillRef.current.getEditor().getText();
-  
-  const formData = new FormData();
-  formData.append('title', title);
-  formData.append('description', plainDescription); // Use plain text here
-  formData.append('author', author);
-  formData.append('authorName', authorname);
-  if (media) formData.append('media', media);
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('author', author);
+    formData.append('authorName', authorname);
+    if (media) formData.append('media', media);
 
-  try {
-    if (selectedPostId) {
-      await axios.put(`http://localhost:3001/api/posts/${selectedPostId}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      toast.success('✅ Post updated successfully!');
-    } else {
-      await axios.post('http://localhost:3001/api/posts', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      toast.success('✅ Successfully posted!');
+    try {
+      if (selectedPostId) {
+        await axios.put(`http://localhost:3001/api/posts/${selectedPostId}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        toast.success('✅ Post updated successfully!');
+      } else {
+        await axios.post('http://localhost:3001/api/posts', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        toast.success('✅ Successfully posted!');
+      }
+
+      setTitle('');
+      setDescription('');
+      setMedia(null);
+      setPreview(null);
+      setSelectedPostId(null);
+
+      const updated = await axios.get('http://localhost:3001/api/posts');
+      setPosts(updated.data.filter(post => post.author === author));
+    } catch (err) {
+      console.error('Error posting:', err);
+      toast.error("Something went wrong while posting.");
     }
-
-    setTitle('');
-    setDescription('');
-    setMedia(null);
-    setPreview(null);
-    setSelectedPostId(null);
-
-    const updated = await axios.get('http://localhost:3001/api/posts');
-    setPosts(updated.data.filter(post => post.author === author));
-  } catch (err) {
-    console.error('Error posting:', err);
-    toast.error("Something went wrong while posting.");
-  }
-};
+  };
 
   const handleEdit = (post) => {
     setTitle(post.title);
@@ -183,13 +176,14 @@ const CreatePost = () => {
 
           <div className="mb-4">
             <label htmlFor="description" className="block text-sm font-semibold text-gray-800">Description</label>
-            <ReactQuill
-              ref={quillRef} // Using ref for ReactQuill
-              theme="snow"
+            <textarea
+              id="description"
               value={description}
-              onChange={setDescription}
-              className="mt-2 border rounded-md shadow-sm h-64" // Increased height for the description
-            />
+              onChange={(e) => setDescription(e.target.value)}
+              required
+              className="mt-2 p-2 w-full border rounded-md shadow-sm resize-y max-h-48 overflow-auto"
+              rows="5"
+            ></textarea>
           </div>
 
           {preview && (
