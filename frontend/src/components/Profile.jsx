@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
@@ -8,18 +10,17 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     fullName: '',
     username: '',
-    email: '',
     pp: null,
   });
-  const [notification, setNotification] = useState('');
   const [preview, setPreview] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Please login.');
+      toast.error('Please login.');
       return;
     }
+
     const fetchProfile = async () => {
       try {
         const res = await axios.get('http://localhost:3001/api/users/profile', {
@@ -29,15 +30,14 @@ const Profile = () => {
         setFormData({
           fullName: res.data.fullName,
           username: res.data.username,
-          email: res.data.email,
           pp: null,
         });
-        setNotification('');
       } catch (err) {
         console.error('Error fetching profile:', err);
-        setNotification('Error fetching profile. Please check your token or API connection.');
+        toast.error('Error fetching profile. Please check your token or API connection.');
       }
     };
+
     fetchProfile();
   }, []);
 
@@ -58,30 +58,27 @@ const Profile = () => {
     const data = new FormData();
     data.append('fullName', formData.fullName);
     data.append('username', formData.username);
-    data.append('email', formData.email);
     if (formData.pp instanceof File) data.append('pp', formData.pp);
+
     try {
       const res = await axios.put('http://localhost:3001/api/users/update', data, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfile(res.data.user);
-      setNotification(res.data.message);
+      toast.success(res.data.message || 'Profile updated successfully.');
       setEditMode(false);
     } catch (err) {
       console.error('Error updating profile:', err);
-      setNotification(err.response?.data?.message || 'Profile update failed.');
+      toast.error(err.response?.data?.message || 'Profile update failed.');
     }
   };
 
   return (
-<div className="min-h-screen flex items-center justify-center bg-white p-6">
-      <div className="bg-white p-8 rounded-3xl text-center shadow-2xl w-full max-w-2xl z-10 text-black">
-        <h2 className="text-3xl font-extrabold text-black mb-4">👤 Profile Settings</h2>
-        {notification && (
-          <motion.p className="mb-4 text-red-400" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            {notification}
-          </motion.p>
-        )}
+    <div className="min-h-screen flex items-center justify-center bg-white p-6 relative">
+      <ToastContainer position="top-right" autoClose={3000} />
+      <div className="bg-white p-10 rounded-3xl text-center shadow-2xl w-full max-w-2xl z-10 text-black">
+        <h2 className="text-3xl font-extrabold text-black mb-6">👤 Profile Settings</h2>
+
         <AnimatePresence mode="wait">
           {profile ? (
             editMode ? (
@@ -92,13 +89,13 @@ const Profile = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
               >
-                {['fullName', 'username', 'email'].map((field, idx) => (
+                {['fullName', 'username'].map((field, idx) => (
                   <motion.div key={idx} className="flex flex-col w-full">
                     <label className="mb-2 text-sm font-semibold text-black">
-                      {field === 'fullName' ? 'Full Name' : field.charAt(0).toUpperCase() + field.slice(1)}
+                      {field === 'fullName' ? 'Full Name' : 'Username'}
                     </label>
                     <motion.input
-                      type={field === 'email' ? 'email' : 'text'}
+                      type="text"
                       name={field}
                       value={formData[field]}
                       onChange={handleChange}
@@ -109,8 +106,8 @@ const Profile = () => {
                     />
                   </motion.div>
                 ))}
-                <div className="flex flex-col text-center ">
-                  <label className="mb-2 text-sm font-semibold text-center text-black">Profile Picture</label>
+                <div className="flex flex-col items-center">
+                  <label className="mb-2 text-sm font-semibold text-black">Profile Picture</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -126,7 +123,10 @@ const Profile = () => {
                       />
                       <button
                         type="button"
-                        onClick={() => setPreview(null)}
+                        onClick={() => {
+                          setPreview(null);
+                          setFormData((prev) => ({ ...prev, pp: null }));
+                        }}
                         className="absolute top-0 right-0 bg-white rounded-full p-1 text-purple-600 hover:text-purple-800"
                       >
                         &times;
@@ -138,7 +138,7 @@ const Profile = () => {
                 <div className="flex justify-between mt-6">
                   <motion.button
                     type="button"
-                    onClick={() => { setEditMode(false); setNotification(''); }}
+                    onClick={() => setEditMode(false)}
                     className="px-6 py-3 bg-gray-300 hover:bg-gray-400 rounded-xl text-black transition-all duration-300"
                     whileTap={{ scale: 0.95 }}
                   >
@@ -166,7 +166,7 @@ const Profile = () => {
                 <div className="flex flex-col items-center">
                   <strong className="text-black">Profile Picture:</strong>
                   <img
-                    src={profile.pp.startsWith('http') ? profile.pp : `http://localhost:3001${profile.pp}`}
+                    src={profile.pp?.startsWith('http') ? profile.pp : `http://localhost:3001${profile.pp}`}
                     alt="Profile"
                     className="w-32 h-32 mt-4 rounded-full object-cover border-4 border-purple-500"
                   />
