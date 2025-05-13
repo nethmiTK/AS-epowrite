@@ -107,7 +107,7 @@ const Hamburger = ({ user }) => {
         {/* USER WELCOME SECTION */}
         {user && (
           <div className="flex items-center gap-4 order-4">
-            {/* Notification Icon
+            {/* Notification Icon */}
             <div className="relative">
               <FiBell
                 size={22}
@@ -119,7 +119,7 @@ const Hamburger = ({ user }) => {
                   {notifications.length}
                 </span>
               )}
-            </div> */}
+            </div>
 
             {/* Profile Section */}
             <div
@@ -192,7 +192,30 @@ const Hamburger = ({ user }) => {
         </div>
       )}
 
-       
+      {/* Notification Modal */}
+      {showNotifications && (
+        <div className="absolute right-4 top-[100%] mt-2 w-80 bg-white shadow-lg rounded-lg border border-purple-200 z-50 max-h-96 overflow-y-auto">
+          <div className="p-4 border-b font-bold text-purple-600">Notifications</div>
+          {notifications.length === 0 ? (
+            <div className="p-4 text-sm text-gray-500">No notifications</div>
+          ) : (
+            notifications.map((note, i) => (
+              <div key={i} className="p-3 text-sm border-b hover:bg-purple-50">
+                <p>
+                  <span className="font-semibold">Reason:</span> {note.reason}
+                </p>
+                <p>
+                  <span className="font-semibold">Author:</span> {note.author}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {new Date(note.date).toLocaleDateString()} |{' '}
+                  {new Date(note.date).toLocaleTimeString()}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+      )}
     </header>
   );
 };
