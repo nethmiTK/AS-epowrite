@@ -140,12 +140,12 @@ const CreatePost = () => {
           </div>
 
           <div className="mb-4">
-            <label htmlFor="description" className="block text-sm font-semibold text-gray-800">Description</label>
+            <label htmlFor="description" className="block text-sm font-semibold text-gray-800 bg-blend-hard-light">Description</label>
             <ReactQuill
               id="description"
               value={description}
               onChange={setDescription}
-              className="bg-white rounded-md"
+              className="bg-white rounded-md h-64" // Increased height
               theme="snow"
             />
           </div>
