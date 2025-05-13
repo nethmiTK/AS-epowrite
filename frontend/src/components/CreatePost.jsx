@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const CreatePost = () => {
   const [posts, setPosts] = useState([]);
@@ -13,9 +15,6 @@ const CreatePost = () => {
   const [authorname, setAuthorname] = useState('');
 
   const [selectedPostId, setSelectedPostId] = useState(null);
-  const [commentText, setCommentText] = useState('');
-  const [userLikes, setUserLikes] = useState(new Set());
-  const [showComments, setShowComments] = useState(null);
 
   useEffect(() => {
     const fetchProfileAndPosts = async () => {
@@ -38,47 +37,6 @@ const CreatePost = () => {
     fetchProfileAndPosts();
   }, [author]);
 
-  const handleLike = async (postId) => {
-    if (!author) return toast.error('You must be logged in to like posts');
-    try {
-      const res = await axios.post(
-        `http://localhost:3001/api/posts/${postId}/like`,
-        { userId: author }
-      );
-      setPosts(posts.map(post => post._id === postId ? res.data : post));
-      setUserLikes(prev => {
-        const newLikes = new Set(prev);
-        newLikes.has(postId) ? newLikes.delete(postId) : newLikes.add(postId);
-        return newLikes;
-      });
-    } catch (err) {
-      console.error('Error toggling like:', err);
-    }
-  };
-
-  const handleCommentSubmit = async (postId) => {
-    if (!commentText.trim()) return;
-    try {
-      const res = await axios.post(`http://localhost:3001/api/posts/${postId}/comment`, {
-        comment: commentText,
-        user: author,
-      });
-      setPosts(posts.map(post => post._id === postId ? res.data : post));
-      setCommentText('');
-    } catch (err) {
-      console.error('Error commenting on the post:', err);
-    }
-  };
-
-  const handleShowComments = (postId) => {
-    setShowComments(prev => prev === postId ? null : postId);
-  };
-
-  const handleShare = (postId) => {
-    navigator.clipboard.writeText(`${window.location.origin}/posts/${postId}`);
-    toast.info('Post link copied to clipboard!');
-  };
-
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file.type.startsWith('image/')) {
@@ -100,11 +58,18 @@ const CreatePost = () => {
     setPreview(null);
   };
 
+  // Strip HTML tags from the description before saving
+  const stripHtmlTags = (html) => {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || div.innerText || '';
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
     formData.append('title', title);
-    formData.append('description', description);
+    formData.append('description', stripHtmlTags(description)); // Save plain text
     formData.append('author', author);
     formData.append('authorName', authorname);
     if (media) formData.append('media', media);
@@ -176,14 +141,13 @@ const CreatePost = () => {
 
           <div className="mb-4">
             <label htmlFor="description" className="block text-sm font-semibold text-gray-800">Description</label>
-            <textarea
+            <ReactQuill
               id="description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              className="mt-2 p-2 w-full border rounded-md shadow-sm resize-y max-h-48 overflow-auto"
-              rows="5"
-            ></textarea>
+              onChange={setDescription}
+              className="bg-white rounded-md"
+              theme="snow"
+            />
           </div>
 
           {preview && (
@@ -221,7 +185,12 @@ const CreatePost = () => {
           </button>
         </form>
 
-        {/* Your post list rendering section can go here */}
+        {/* POSTS LIST (Optional for future UI development) */}
+        {posts.map((post) => (
+          <div key={post._id}>
+            {/* Render post details */}
+          </div>
+        ))}
       </div>
     </div>
   );
