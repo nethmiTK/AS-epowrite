@@ -1,7 +1,9 @@
-// AdminPosts.js
+ // AdminPosts.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Pencil, Trash2, Check, AlertTriangle, FileText, Flag } from 'lucide-react';
+import { Pencil, Trash2, Check, FileText, Flag } from 'lucide-react';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const A = () => {
   const [posts, setPosts] = useState([]);
@@ -10,7 +12,7 @@ const A = () => {
   const [editMode, setEditMode] = useState({});
   const [editedPostData, setEditedPostData] = useState({});
   const [showMoreMap, setShowMoreMap] = useState({});
-  const [activeTab, setActiveTab] = useState('all'); // all, reported, alert
+  const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
     fetchPosts();
@@ -22,46 +24,16 @@ const A = () => {
       const res = await axios.get('http://localhost:3001/api/posts');
       setPosts(res.data);
     } catch (err) {
-      console.error('Error fetching posts:', err);
+      toast.error('Error fetching posts');
     }
-    {posts.map((post) => (
-  <div key={post._id} className="border p-4 rounded mb-4">
-    {post.isDeleted ? (
-      <p className="text-red-500 font-semibold">
-        This post is reported, so it can't be shown.
-      </p>
-    ) : (
-      <>
-        <h2 className="text-xl font-bold">{post.title}</h2>
-        <p>{post.description}</p>
-        <p className="text-sm text-gray-500">Author: {post.author}</p>
-      </>
-    )}
-  </div>
-))}
-
   };
-  // Define the soft delete function
-const handleSoftDelete = async (postId) => {
-  if (window.confirm('Are you sure you want to soft delete this post?')) {
-    try {
-      // Send a request to the backend to update the 'isDeleted' field
-      await axios.patch(`http://localhost:3001/api/posts/${postId}/softdelete`);
-      // Filter out the soft-deleted post from the UI
-      setPosts(posts.filter(post => post._id !== postId));
-      setReportedPosts(reportedPosts.filter(post => post._id !== postId));
-    } catch (err) {
-      console.error('Error soft deleting post:', err);
-    }
-  }
-};
 
   const fetchReportedPosts = async () => {
     try {
       const res = await axios.get('http://localhost:3001/api/posts/reported');
       setReportedPosts(res.data);
     } catch (err) {
-      console.error('Error fetching reported posts:', err);
+      toast.error('Error fetching reported posts');
     }
   };
 
@@ -71,8 +43,22 @@ const handleSoftDelete = async (postId) => {
         await axios.delete(`http://localhost:3001/api/posts/${postId}`);
         setPosts(posts.filter(post => post._id !== postId));
         setReportedPosts(reportedPosts.filter(post => post._id !== postId));
+        toast.success('Post deleted successfully');
       } catch (err) {
-        console.error('Error deleting post:', err);
+        toast.error('Error deleting post');
+      }
+    }
+  };
+
+  const handleSoftDelete = async (postId) => {
+    if (window.confirm('Are you sure you want to soft delete this post?')) {
+      try {
+        await axios.patch(`http://localhost:3001/api/posts/${postId}/softdelete`);
+        setPosts(posts.filter(post => post._id !== postId));
+        setReportedPosts(reportedPosts.filter(post => post._id !== postId));
+        toast.info('Post soft-deleted');
+      } catch (err) {
+        toast.error('Error soft deleting post');
       }
     }
   };
@@ -102,8 +88,9 @@ const handleSoftDelete = async (postId) => {
       setPosts(posts.map(post => post._id === postId ? res.data : post));
       setReportedPosts(reportedPosts.map(post => post._id === postId ? res.data : post));
       setEditMode((prev) => ({ ...prev, [postId]: false }));
+      toast.success('Post updated successfully');
     } catch (err) {
-      console.error('Error updating post:', err);
+      toast.error('Error updating post');
     }
   };
 
@@ -114,15 +101,15 @@ const handleSoftDelete = async (postId) => {
     }));
   };
 
-  const filteredPosts = posts.filter(post =>
-    post.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredPosts = posts
+    .filter((post) =>
+      post.title.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort by latest posts first
 
   const alertPosts = reportedPosts.filter(post => post.reports.length > 0);
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString();
-  };
+  const formatDate = (dateString) => new Date(dateString).toLocaleString();
 
   const renderPostCard = (post, isReported = false) => (
     <div key={post._id} className={`p-6 rounded-lg shadow-md ${isReported ? 'bg-red-50 border border-red-300' : 'bg-white'}`}>
@@ -205,24 +192,16 @@ const handleSoftDelete = async (postId) => {
             <Pencil size={18} />
           </button>
         )}
-        <button
-          onClick={() => handleDelete(post._id)}
-          title="Delete"
-          className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
-        >
-          <Trash2 size={18} />
-        </button>
-       <button
-  onClick={() => handleSoftDelete(post._id)}
-  title="Soft Delete"
-  className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
->
-  🗑️
-</button>
 
+        <button
+          onClick={() => handleSoftDelete(post._id)}
+          title="Soft Delete"
+          className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+        >
+          🗑️
+        </button>
       </div>
 
-      {/* Report Section */}
       {isReported && post.reports?.length > 0 && (
         <div className="bg-white p-3 rounded border mt-4">
           <h4 className="text-md font-semibold text-red-700 mb-2">Reports:</h4>
@@ -240,6 +219,7 @@ const handleSoftDelete = async (postId) => {
 
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-10 pt-32 text-gray-800">
+      <ToastContainer />
       <div className="max-w-5xl mx-auto">
         <h1 className="text-4xl font-bold text-center text-blue-700 mb-6">Welcome, Admin</h1>
 
@@ -255,12 +235,6 @@ const handleSoftDelete = async (postId) => {
             onClick={() => setActiveTab('reported')}
           >
             <Flag size={18} /> Reported Posts
-          </button>
-          <button
-            className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'alert' ? 'bg-red-600 text-white' : 'bg-white border'}`}
-            onClick={() => setActiveTab('alert')}
-          >
-            <AlertTriangle size={18} /> Alert Posts
           </button>
         </div>
 
@@ -282,12 +256,6 @@ const handleSoftDelete = async (postId) => {
         {activeTab === 'reported' && (
           <div className="space-y-6">
             {reportedPosts.map((post) => renderPostCard(post, true))}
-          </div>
-        )}
-
-        {activeTab === 'alert' && (
-          <div className="space-y-6">
-            {alertPosts.map((post) => renderPostCard(post, true))}
           </div>
         )}
       </div>

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
+const { updateUser } = require('../controllers/userController');
 
 // GET current user profile
 router.get('/profile', authenticate, (req, res) => {
