@@ -21,23 +21,26 @@ const Dashboard = () => {
   const [expandedPosts, setExpandedPosts] = useState(new Set());
 
   useEffect(() => {
-    const fetchProfileAndPosts = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      try {
-        const profileRes = await axios.get('http://localhost:3001/api/users/profile', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setAuthor(profileRes.data.fullName);
+  const fetchProfileAndPosts = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const profileRes = await axios.get('http://localhost:3001/api/users/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAuthor(profileRes.data.fullName);
 
-        const postRes = await axios.get('http://localhost:3001/api/posts');
-        setPosts(postRes.data.filter(post => post.author === profileRes.data.email));
-      } catch (err) {
-        console.error('Error:', err);
-      }
-    };
-    fetchProfileAndPosts();
-  }, [author]);
+      const postRes = await axios.get('http://localhost:3001/api/posts');
+      const sortedPosts = postRes.data
+        .filter(post => post.author === profileRes.data.email)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort posts by date in descending order
+      setPosts(sortedPosts);
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
+  fetchProfileAndPosts();
+}, [author]);
 
 
   const toggleExpanded = (postId) => {

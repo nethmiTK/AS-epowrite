@@ -1,4 +1,4 @@
- // AdminPosts.js
+// AdminPosts.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Pencil, Trash2, Check, FileText, Flag } from 'lucide-react';
@@ -102,12 +102,8 @@ const A = () => {
   };
 
   const filteredPosts = posts
-    .filter((post) =>
-      post.title.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort by latest posts first
-
-  const alertPosts = reportedPosts.filter(post => post.reports.length > 0);
+    .filter(post => !post.isDeleted)
+    .filter(post => post.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   const formatDate = (dateString) => new Date(dateString).toLocaleString();
 
@@ -192,7 +188,13 @@ const A = () => {
             <Pencil size={18} />
           </button>
         )}
-
+        <button
+          onClick={() => handleDelete(post._id)}
+          title="Delete"
+          className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+        >
+          <Trash2 size={18} />
+        </button>
         <button
           onClick={() => handleSoftDelete(post._id)}
           title="Soft Delete"
@@ -255,7 +257,9 @@ const A = () => {
 
         {activeTab === 'reported' && (
           <div className="space-y-6">
-            {reportedPosts.map((post) => renderPostCard(post, true))}
+            {reportedPosts
+              .filter(post => !post.isDeleted)
+              .map((post) => renderPostCard(post, true))}
           </div>
         )}
       </div>
