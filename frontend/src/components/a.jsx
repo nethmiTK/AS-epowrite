@@ -153,14 +153,21 @@ const filteredPosts = posts
               showMoreMap[post._id] ? (
                 <>
                   {post.description}{' '}
-                  <button onClick={() => toggleShowMore(post._id)} className="text-blue-600 hover:underline text-sm">
+
+                  <button
+                    onClick={() => toggleShowMore(post._id)}
+                    className="text-blue-600 hover:underline text-sm"
+                  >
                     Show less
                   </button>
                 </>
               ) : (
                 <>
                   {post.description.slice(0, 200)}...{' '}
-                  <button onClick={() => toggleShowMore(post._id)} className="text-blue-600 hover:underline text-sm">
+                  <button
+                    onClick={() => toggleShowMore(post._id)}
+                    className="text-blue-600 hover:underline text-sm"
+                  >
                     Show more
                   </button>
                 </>
