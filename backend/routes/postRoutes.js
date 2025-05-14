@@ -166,6 +166,20 @@ router.patch('/:postId/softdelete', async (req, res) => {
   }
 });
 
+// Restore a soft-deleted post
+router.patch('/:postId/restore', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    post.isDeleted = false; // Set isDeleted to false
+    await post.save();
+    res.status(200).json({ message: 'Post restored successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error restoring post', error: error.message });
+  }
+});
+
 // Delete a post
 router.delete('/:postId', async (req, res) => {
   try {

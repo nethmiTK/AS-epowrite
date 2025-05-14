@@ -6,7 +6,6 @@ const authRoutes = require('./routes/auth'); // Your login/register routes
 const userRoutes = require('./routes/userRoutes'); // Your profile routes
 const postRoutes = require('./routes/postRoutes'); // Your post routes
 const notificationRoutes = require('./routes/notifications');
-
 require('dotenv').config();
 
 const app = express();

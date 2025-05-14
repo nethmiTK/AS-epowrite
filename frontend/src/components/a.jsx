@@ -22,7 +22,7 @@ const A = () => {
   }, []);
 const filteredPosts = posts
   .filter(post => !post.isDeleted)
-  .filter(post => post.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()));
   const fetchPosts = async () => {
     try {
       const res = await axios.get('http://localhost:3001/api/posts');
@@ -50,18 +50,24 @@ const filteredPosts = posts
     }
   };
 
-  const handleRestore = async (postId) => {
-    if (window.confirm('Restore this post?')) {
-      try {
-        const res = await axios.patch(`http://localhost:3001/api/posts/${postId}/restore`);
-        setDeletedPosts(deletedPosts.filter(post => post._id !== postId));
-        setPosts(prev => [...prev, res.data]);
-        toast.success('Post restored successfully');
-      } catch (err) {
-        toast.error('Error restoring post');
+ const handleRestore = async (postId) => {
+  console.log('Restoring post with ID: ', postId); // Log the postId to verify
+  if (window.confirm('Restore this post?')) {
+    try {
+      const res = await axios.patch(`http://localhost:3001/api/posts/${postId}/restore`);
+      if (res.status === 404) {
+        toast.error('Post not found');
+        return;
       }
+      setDeletedPosts(deletedPosts.filter(post => post._id !== postId));
+      setPosts(prev => [...prev, res.data]);
+      toast.success('Post restored successfully');
+    } catch (err) {
+      toast.error('Error restoring post');
     }
-  };
+  }
+};
+
 
   const handleSoftDelete = async (postId) => {
     if (window.confirm('Are you sure you want to soft delete this post?')) {
