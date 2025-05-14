@@ -1,12 +1,11 @@
-// models/Post.js
 const mongoose = require('mongoose');
 
 const postSchema = new mongoose.Schema(
   {
     title: String,
     description: String,
-    author: String,
-    authorName: String,
+    author: String, // Save userId here
+    authorName: String, // Save fullName here
     media: String,
     likes: {
       type: [String],
@@ -39,7 +38,7 @@ const postSchema = new mongoose.Schema(
     ],
     isDeleted: {
       type: Boolean,
-      default: false, // added for soft delete
+      default: false, // Soft delete
     },
   },
   {
