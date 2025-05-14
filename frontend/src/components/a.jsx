@@ -14,15 +14,38 @@ const A = () => {
   const [editedPostData, setEditedPostData] = useState({});
   const [showMoreMap, setShowMoreMap] = useState({});
   const [activeTab, setActiveTab] = useState('all');
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     fetchPosts();
     fetchReportedPosts();
     fetchDeletedPosts();
   }, []);
-const filteredPosts = posts
-  .filter(post => !post.isDeleted)
-  .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  useEffect(() => {
+    const savedMode = localStorage.getItem('darkMode');
+    if (savedMode) {
+      setDarkMode(JSON.parse(savedMode));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  const toggleDarkMode = () => {
+    setDarkMode((prevMode) => !prevMode);
+  };
+
+  const filteredPosts = posts
+    .filter(post => !post.isDeleted)
+    .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()));
+
   const fetchPosts = async () => {
     try {
       const res = await axios.get('http://localhost:3001/api/posts');
@@ -50,24 +73,23 @@ const filteredPosts = posts
     }
   };
 
- const handleRestore = async (postId) => {
-  console.log('Restoring post with ID: ', postId); // Log the postId to verify
-  if (window.confirm('Restore this post?')) {
-    try {
-      const res = await axios.patch(`http://localhost:3001/api/posts/${postId}/restore`);
-      if (res.status === 404) {
-        toast.error('Post not found');
-        return;
+  const handleRestore = async (postId) => {
+    console.log('Restoring post with ID: ', postId); // Log the postId to verify
+    if (window.confirm('Restore this post?')) {
+      try {
+        const res = await axios.patch(`http://localhost:3001/api/posts/${postId}/restore`);
+        if (res.status === 404) {
+          toast.error('Post not found');
+          return;
+        }
+        setDeletedPosts(deletedPosts.filter(post => post._id !== postId));
+        setPosts(prev => [...prev, res.data]);
+        toast.success('Post restored successfully');
+      } catch (err) {
+        toast.error('Error restoring post');
       }
-      setDeletedPosts(deletedPosts.filter(post => post._id !== postId));
-      setPosts(prev => [...prev, res.data]);
-      toast.success('Post restored successfully');
-    } catch (err) {
-      toast.error('Error restoring post');
     }
-  }
-};
-
+  };
 
   const handleSoftDelete = async (postId) => {
     if (window.confirm('Are you sure you want to soft delete this post?')) {
@@ -120,14 +142,13 @@ const filteredPosts = posts
     }));
   };
 
-  
   const formatDate = (dateString) => new Date(dateString).toLocaleString();
 
   const renderPostCard = (post, isReported = false) => (
-    <div key={post._id} className={`p-6 rounded-lg shadow-md ${isReported ? 'bg-red-50 border border-red-300' : 'bg-white'}`}>
+    <div key={post._id} className={`p-6 rounded-lg shadow-md ${isReported ? 'bg-red-50 border border-red-300' : 'bg-white dark:bg-gray-800'}`}>
       <div className="mb-3">
-        <p className="font-semibold text-lg text-gray-800">{post.author}</p>
-        <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p>
+        <p className="font-semibold text-lg text-gray-800 dark:text-gray-200">{post.author}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{formatDate(post.createdAt)}</p>
       </div>
 
       {editMode[post._id] ? (
@@ -136,27 +157,26 @@ const filteredPosts = posts
             type="text"
             value={editedPostData[post._id]?.title || ''}
             onChange={(e) => handleEditChange(post._id, 'title', e.target.value)}
-            className="w-full p-2 mb-2 border border-gray-300 rounded"
+            className="w-full p-2 mb-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
           />
           <textarea
             value={editedPostData[post._id]?.description || ''}
             onChange={(e) => handleEditChange(post._id, 'description', e.target.value)}
-            className="w-full p-2 mb-2 border border-gray-300 rounded"
+            className="w-full p-2 mb-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
             rows={3}
           />
         </>
       ) : (
         <>
-          <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
-          <p className="text-gray-700 mb-2">
+          <h2 className="text-2xl font-semibold mb-2 text-gray-800 dark:text-gray-200">{post.title}</h2>
+          <p className="text-gray-700 dark:text-gray-300 mb-2">
             {post.description.length > 200 ? (
               showMoreMap[post._id] ? (
                 <>
                   {post.description}{' '}
-
                   <button
                     onClick={() => toggleShowMore(post._id)}
-                    className="text-blue-600 hover:underline text-sm"
+                    className="text-blue-600 hover:underline text-sm dark:text-blue-400"
                   >
                     Show less
                   </button>
@@ -166,7 +186,7 @@ const filteredPosts = posts
                   {post.description.slice(0, 200)}...{' '}
                   <button
                     onClick={() => toggleShowMore(post._id)}
-                    className="text-blue-600 hover:underline text-sm"
+                    className="text-blue-600 hover:underline text-sm dark:text-blue-400"
                   >
                     Show more
                   </button>
@@ -183,7 +203,7 @@ const filteredPosts = posts
         <img
           src={`http://localhost:3001/${post.media}`}
           alt="Post"
-          className="w-full h-auto rounded-lg mb-4"
+          className="w-full h-48 object-cover rounded-lg mb-4"
         />
       )}
 
@@ -203,13 +223,13 @@ const filteredPosts = posts
       </div>
 
       {isReported && post.reports?.length > 0 && (
-        <div className="bg-white p-3 rounded border mt-4">
-          <h4 className="text-md font-semibold text-red-700 mb-2">Reports:</h4>
+        <div className="bg-white dark:bg-gray-800 p-3 rounded border mt-4">
+          <h4 className="text-md font-semibold text-red-700 dark:text-red-400 mb-2">Reports:</h4>
           {post.reports.map((report, index) => (
             <div key={index} className="border-t py-2">
-              <p className="text-sm"><strong>Reporter:</strong> {report.reporterName}</p>
-              <p className="text-sm"><strong>Reason:</strong> {report.reason}</p>
-              <p className="text-xs text-gray-500">{formatDate(report.reportedAt)}</p>
+              <p className="text-sm dark:text-gray-300"><strong>Reporter:</strong> {report.reporterName}</p>
+              <p className="text-sm dark:text-gray-300"><strong>Reason:</strong> {report.reason}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{formatDate(report.reportedAt)}</p>
             </div>
           ))}
         </div>
@@ -218,19 +238,27 @@ const filteredPosts = posts
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 px-4 py-10 pt-32 text-gray-800">
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'} px-4 py-10 pt-32`}>
       <ToastContainer />
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-4xl font-bold text-center text-blue-700 mb-6">Welcome, Admin</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-4xl font-bold text-center text-blue-700 dark:text-blue-300">Welcome, Admin</h1>
+          <button
+            onClick={toggleDarkMode}
+            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-300 dark:text-gray-900 dark:hover:bg-blue-400"
+          >
+            {darkMode ? 'Light Mode' : 'Dark Mode'}
+          </button>
+        </div>
 
         <div className="flex flex-wrap justify-center gap-4 mb-6">
-          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'all' ? 'bg-blue-600 text-white' : 'bg-white border'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('all')}>
+          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'all' ? 'bg-blue-600 text-white' : 'bg-white border dark:bg-gray-800 dark:border-gray-600'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('all')}>
             <FileText size={18} /> All Posts
           </button>
-          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'reported' ? 'bg-yellow-500 text-white' : 'bg-white border'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('reported')}>
+          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'reported' ? 'bg-yellow-500 text-white' : 'bg-white border dark:bg-gray-800 dark:border-gray-600'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('reported')}>
             <Flag size={18} /> Reported Posts
           </button>
-          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'restored' ? 'bg-green-500 text-white' : 'bg-white border'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('restored')}>
+          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'restored' ? 'bg-green-500 text-white' : 'bg-white border dark:bg-gray-800 dark:border-gray-600'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('restored')}>
             <Flag size={18} /> Restored Posts
           </button>
         </div>
@@ -242,7 +270,7 @@ const filteredPosts = posts
               placeholder="Search posts by title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
             />
             <div className="space-y-6">
               {filteredPosts.map((post) => renderPostCard(post))}
@@ -257,7 +285,7 @@ const filteredPosts = posts
               placeholder="Search reported posts by title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
             />
             <div className="space-y-6">
               {reportedPosts
@@ -275,17 +303,17 @@ const filteredPosts = posts
               placeholder="Search restored posts by title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
             />
             <div className="space-y-6">
               {deletedPosts
                 .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()))
                 .map((post) => (
-                  <div key={post._id} className="p-6 bg-gray-200 rounded-lg shadow-md">
-                    <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
-                    <p className="text-sm text-gray-600">Author: {post.authorName}</p>
-                    <p className="mb-2">{post.description}</p>
-                    <p className="text-sm text-gray-600">{formatDate(post.createdAt)}</p>
+                  <div key={post._id} className="p-6 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md">
+                    <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">{post.title}</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Author: {post.authorName}</p>
+                    <p className="mb-2 text-gray-800 dark:text-gray-300">{post.description}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(post.createdAt)}</p>
                     <div className="mt-3">
                       <button
                         onClick={() => handleRestore(post._id)}
