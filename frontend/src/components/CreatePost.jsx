@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -14,6 +14,7 @@ const CreatePost = () => {
   const [preview, setPreview] = useState(null);
   const [author, setAuthor] = useState('');
   const [selectedPostId, setSelectedPostId] = useState(null);
+  const quillRef = useRef();
 
   useEffect(() => {
     const fetchProfileAndPosts = async () => {
@@ -56,44 +57,46 @@ const CreatePost = () => {
     const length = editor.getLength();  // Get the length of the current text
     editor.setSelection(length, length); // Move the cursor to the end
   };
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  // Remove HTML tags from description
-  const plainDescription = description.replace(/<[^>]+>/g, ''); // Remove all HTML tags
 
-  const formData = new FormData();
-  formData.append('title', title);
-  formData.append('description', plainDescription); // Use plain text description here
-  formData.append('author', author);
-  if (media) formData.append('media', media);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    if (selectedPostId) {
-      await axios.put(`http://localhost:3001/api/posts/${selectedPostId}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      toast.success('✅ Post updated successfully!');
-    } else {
-      await axios.post('http://localhost:3001/api/posts', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      toast.success('✅ Successfully posted!');
+    // Remove HTML tags from title and description
+    const plainTitle = title.replace(/<[^>]+>/g, ''); // Remove all HTML tags from the title
+    const plainDescription = description.replace(/<[^>]+>/g, ''); // Remove all HTML tags from the description
+
+    const formData = new FormData();
+    formData.append('title', plainTitle); // Use plain text title here
+    formData.append('description', plainDescription); // Use plain text description here
+    formData.append('author', author);
+    if (media) formData.append('media', media);
+
+    try {
+      if (selectedPostId) {
+        await axios.put(`http://localhost:3001/api/posts/${selectedPostId}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        toast.success('✅ Post updated successfully!');
+      } else {
+        await axios.post('http://localhost:3001/api/posts', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        toast.success('✅ Successfully posted!');
+      }
+
+      setTitle('');
+      setDescription('');
+      setMedia(null);
+      setPreview(null);
+      setSelectedPostId(null);
+
+      const updated = await axios.get('http://localhost:3001/api/posts');
+      setPosts(updated.data.filter(post => post.author === author));
+    } catch (err) {
+      toast.error('❌ Failed to post!');
+      console.error('Error posting:', err);
     }
-
-    setTitle('');
-    setDescription('');
-    setMedia(null);
-    setPreview(null);
-    setSelectedPostId(null);
-
-    const updated = await axios.get('http://localhost:3001/api/posts');
-    setPosts(updated.data.filter(post => post.author === author));
-  } catch (err) {
-    toast.error('❌ Failed to post!');
-    console.error('Error posting:', err);
-  }
-};
+  };
 
   const handleEdit = (post) => {
     setTitle(post.title);
@@ -152,11 +155,11 @@ const CreatePost = () => {
               value={description}
               onChange={handleEditorChange}
               className="mt-2 bg-white rounded-md shadow-sm"
-                      onFocus={handleFocus}  // Call handleFocus on focus
-
+              onFocus={handleFocus}  // Call handleFocus on focus
               theme="snow"
               placeholder="Write your post content here..."
               style={{ height: '200px', marginBottom: '50px' }}
+              ref={quillRef}
             />
           </div>
 
