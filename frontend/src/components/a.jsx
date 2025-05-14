@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const A = () => {
   const [posts, setPosts] = useState([]);
   const [reportedPosts, setReportedPosts] = useState([]);
+  const [deletedPosts, setDeletedPosts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [editMode, setEditMode] = useState({});
   const [editedPostData, setEditedPostData] = useState({});
@@ -17,8 +18,11 @@ const A = () => {
   useEffect(() => {
     fetchPosts();
     fetchReportedPosts();
+    fetchDeletedPosts();
   }, []);
-
+const filteredPosts = posts
+  .filter(post => !post.isDeleted)
+  .filter(post => post.title.toLowerCase().includes(searchQuery.toLowerCase()));
   const fetchPosts = async () => {
     try {
       const res = await axios.get('http://localhost:3001/api/posts');
@@ -37,15 +41,24 @@ const A = () => {
     }
   };
 
-  const handleDelete = async (postId) => {
-    if (window.confirm('Are you sure you want to delete this post?')) {
+  const fetchDeletedPosts = async () => {
+    try {
+      const res = await axios.get('http://localhost:3001/api/posts/deleted');
+      setDeletedPosts(res.data);
+    } catch (err) {
+      toast.error('Error fetching deleted posts');
+    }
+  };
+
+  const handleRestore = async (postId) => {
+    if (window.confirm('Restore this post?')) {
       try {
-        await axios.delete(`http://localhost:3001/api/posts/${postId}`);
-        setPosts(posts.filter(post => post._id !== postId));
-        setReportedPosts(reportedPosts.filter(post => post._id !== postId));
-        toast.success('Post deleted successfully');
+        const res = await axios.patch(`http://localhost:3001/api/posts/${postId}/restore`);
+        setDeletedPosts(deletedPosts.filter(post => post._id !== postId));
+        setPosts(prev => [...prev, res.data]);
+        toast.success('Post restored successfully');
       } catch (err) {
-        toast.error('Error deleting post');
+        toast.error('Error restoring post');
       }
     }
   };
@@ -64,15 +77,15 @@ const A = () => {
   };
 
   const handleEditToggle = (post) => {
-    setEditMode((prev) => ({ ...prev, [post._id]: !prev[post._id] }));
-    setEditedPostData((prev) => ({
+    setEditMode(prev => ({ ...prev, [post._id]: !prev[post._id] }));
+    setEditedPostData(prev => ({
       ...prev,
       [post._id]: { title: post.title, description: post.description },
     }));
   };
 
   const handleEditChange = (postId, field, value) => {
-    setEditedPostData((prev) => ({
+    setEditedPostData(prev => ({
       ...prev,
       [postId]: {
         ...prev[postId],
@@ -87,7 +100,7 @@ const A = () => {
       const res = await axios.put(`http://localhost:3001/api/posts/${postId}`, updatedData);
       setPosts(posts.map(post => post._id === postId ? res.data : post));
       setReportedPosts(reportedPosts.map(post => post._id === postId ? res.data : post));
-      setEditMode((prev) => ({ ...prev, [postId]: false }));
+      setEditMode(prev => ({ ...prev, [postId]: false }));
       toast.success('Post updated successfully');
     } catch (err) {
       toast.error('Error updating post');
@@ -95,16 +108,13 @@ const A = () => {
   };
 
   const toggleShowMore = (postId) => {
-    setShowMoreMap((prev) => ({
+    setShowMoreMap(prev => ({
       ...prev,
       [postId]: !prev[postId],
     }));
   };
 
-  const filteredPosts = posts
-    .filter(post => !post.isDeleted)
-    .filter(post => post.title.toLowerCase().includes(searchQuery.toLowerCase()));
-
+  
   const formatDate = (dateString) => new Date(dateString).toLocaleString();
 
   const renderPostCard = (post, isReported = false) => (
@@ -137,20 +147,14 @@ const A = () => {
               showMoreMap[post._id] ? (
                 <>
                   {post.description}{' '}
-                  <button
-                    onClick={() => toggleShowMore(post._id)}
-                    className="text-blue-600 hover:underline text-sm"
-                  >
+                  <button onClick={() => toggleShowMore(post._id)} className="text-blue-600 hover:underline text-sm">
                     Show less
                   </button>
                 </>
               ) : (
                 <>
                   {post.description.slice(0, 200)}...{' '}
-                  <button
-                    onClick={() => toggleShowMore(post._id)}
-                    className="text-blue-600 hover:underline text-sm"
-                  >
+                  <button onClick={() => toggleShowMore(post._id)} className="text-blue-600 hover:underline text-sm">
                     Show more
                   </button>
                 </>
@@ -172,29 +176,16 @@ const A = () => {
 
       <div className="flex gap-2 mt-4">
         {editMode[post._id] ? (
-          <button
-            onClick={() => handleEditSave(post._id)}
-            title="Save"
-            className="p-2 bg-green-600 text-white rounded-full hover:bg-green-700"
-          >
+          <button onClick={() => handleEditSave(post._id)} title="Save" className="p-2 bg-green-600 text-white rounded-full hover:bg-green-700">
             <Check size={18} />
           </button>
         ) : (
-          <button
-            onClick={() => handleEditToggle(post)}
-            title="Edit"
-            className="p-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600"
-          >
+          <button onClick={() => handleEditToggle(post)} title="Edit" className="p-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600">
             <Pencil size={18} />
           </button>
         )}
-        <button
-          onClick={() => handleSoftDelete(post._id)}
-          title="Delete"
-          className="p-2 bg-red-600 text-white rounded-full hover:bg-blue-700"
-        >
-                    <Trash2 size={18} />
-
+        <button onClick={() => handleSoftDelete(post._id)} title="Delete" className="p-2 bg-red-600 text-white rounded-full hover:bg-blue-700">
+          <Trash2 size={18} />
         </button>
       </div>
 
@@ -220,17 +211,14 @@ const A = () => {
         <h1 className="text-4xl font-bold text-center text-blue-700 mb-6">Welcome, Admin</h1>
 
         <div className="flex justify-center gap-4 mb-6">
-          <button
-            className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'all' ? 'bg-blue-600 text-white' : 'bg-white border'}`}
-            onClick={() => setActiveTab('all')}
-          >
+          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'all' ? 'bg-blue-600 text-white' : 'bg-white border'}`} onClick={() => setActiveTab('all')}>
             <FileText size={18} /> All Posts
           </button>
-          <button
-            className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'reported' ? 'bg-yellow-500 text-white' : 'bg-white border'}`}
-            onClick={() => setActiveTab('reported')}
-          >
+          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'reported' ? 'bg-yellow-500 text-white' : 'bg-white border'}`} onClick={() => setActiveTab('reported')}>
             <Flag size={18} /> Reported Posts
+          </button>
+          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'restored' ? 'bg-green-500 text-white' : 'bg-white border'}`} onClick={() => setActiveTab('restored')}>
+            <Flag size={18} /> Restored Posts
           </button>
         </div>
 
@@ -254,6 +242,26 @@ const A = () => {
             {reportedPosts
               .filter(post => !post.isDeleted)
               .map((post) => renderPostCard(post, true))}
+          </div>
+        )}
+
+        {activeTab === 'restored' && (
+          <div className="space-y-6">
+            {deletedPosts.map((post) => (
+              <div key={post._id} className="p-6 bg-gray-200 rounded-lg shadow-md">
+                <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
+                <p className="mb-2">{post.description}</p>
+                <p className="text-sm text-gray-600">{formatDate(post.createdAt)}</p>
+                <div className="mt-3">
+                  <button
+                    onClick={() => handleRestore(post._id)}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                  >
+                    Restore
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
