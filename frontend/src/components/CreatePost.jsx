@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 
 const CreatePost = () => {
   const [posts, setPosts] = useState([]);
@@ -11,10 +7,12 @@ const CreatePost = () => {
   const [description, setDescription] = useState('');
   const [media, setMedia] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [notification, setNotification] = useState('');
   const [author, setAuthor] = useState('');
-  const [authorname, setAuthorname] = useState('');
-
   const [selectedPostId, setSelectedPostId] = useState(null);
+  const [commentText, setCommentText] = useState('');
+  const [userLikes, setUserLikes] = useState(new Set());
+  const [showComments, setShowComments] = useState(null);
 
   useEffect(() => {
     const fetchProfileAndPosts = async () => {
@@ -24,29 +22,73 @@ const CreatePost = () => {
         const profileRes = await axios.get('http://localhost:3001/api/users/profile', {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setAuthor(profileRes.data.email);
-        setAuthorname(profileRes.data.fullName);
+        setAuthor(profileRes.data.fullName);
 
         const postRes = await axios.get('http://localhost:3001/api/posts');
         setPosts(postRes.data.filter(post => post.author === profileRes.data.fullName));
       } catch (err) {
         console.error('Error:', err);
-        toast.error("Failed to load profile or posts.");
       }
     };
     fetchProfileAndPosts();
   }, [author]);
 
+  const handleLike = async (postId) => {
+    if (!author) return alert('You must be logged in to like posts');
+    try {
+      const res = await axios.post(
+        `http://localhost:3001/api/posts/${postId}/like`,
+        { userId: author }
+      );
+      setPosts(posts.map(post =>
+        post._id === postId ? res.data : post
+      ));
+
+      setUserLikes(prev => {
+        const newLikes = new Set(prev);
+        if (newLikes.has(postId)) {
+          newLikes.delete(postId);
+        } else {
+          newLikes.add(postId);
+        }
+        return newLikes;
+      });
+    } catch (err) {
+      console.error('Error toggling like:', err);
+    }
+  };
+
+  const handleCommentSubmit = async (postId) => {
+    if (!commentText.trim()) return;
+    try {
+      const res = await axios.post(`http://localhost:3001/api/posts/${postId}/comment`, {
+        comment: commentText,
+        user: author,
+      });
+      setPosts(posts.map(post =>
+        post._id === postId ? res.data : post
+      ));
+      setCommentText('');
+    } catch (err) {
+      console.error('Error commenting on the post:', err);
+    }
+  };
+
+  const handleShowComments = (postId) => {
+    setShowComments(prev => prev === postId ? null : postId);
+  };
+
+  const handleShare = (postId) => {
+    navigator.clipboard.writeText(`${window.location.origin}/posts/${postId}`);
+    alert('Post link copied to clipboard!');
+  };
+
+  const isImage = (url) => {
+    return url.match(/\.(jpg|jpeg|png|gif)$/);
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (!file.type.startsWith('image/')) {
-      toast.error("Please upload a valid image file.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image size should be less than 5MB.");
-      return;
-    }
     setMedia(file);
     const reader = new FileReader();
     reader.onloadend = () => setPreview(reader.result);
@@ -58,20 +100,12 @@ const CreatePost = () => {
     setPreview(null);
   };
 
-  // Strip HTML tags from the description before saving
-  const stripHtmlTags = (html) => {
-    const div = document.createElement('div');
-    div.innerHTML = html;
-    return div.textContent || div.innerText || '';
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
     formData.append('title', title);
-    formData.append('description', stripHtmlTags(description)); // Save plain text
+    formData.append('description', description);
     formData.append('author', author);
-    formData.append('authorName', authorname);
     if (media) formData.append('media', media);
 
     try {
@@ -79,12 +113,12 @@ const CreatePost = () => {
         await axios.put(`http://localhost:3001/api/posts/${selectedPostId}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        toast.success('✅ Post updated successfully!');
+        setNotification('✅ Post updated successfully!');
       } else {
         await axios.post('http://localhost:3001/api/posts', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        toast.success('✅ Successfully posted!');
+        setNotification('✅ Successfully posted!');
       }
 
       setTitle('');
@@ -95,9 +129,9 @@ const CreatePost = () => {
 
       const updated = await axios.get('http://localhost:3001/api/posts');
       setPosts(updated.data.filter(post => post.author === author));
+      setTimeout(() => setNotification(''), 3000);
     } catch (err) {
       console.error('Error posting:', err);
-      toast.error("Something went wrong while posting.");
     }
   };
 
@@ -115,17 +149,20 @@ const CreatePost = () => {
       const updated = await axios.get('http://localhost:3001/api/posts');
       setPosts(updated.data.filter(post => post.author === author));
       setSelectedPostId(null);
-      toast.success("🗑️ Post deleted.");
     } catch (err) {
       console.error('Error deleting:', err);
-      toast.error("Failed to delete post.");
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 px-4 py-6 sm:px-6 lg:px-8 pt-40">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <div className="max-w-3xl mx-auto flex flex-col items-center justify-center">
+        {notification && (
+          <div className="mb-4 p-3 bg-green-100 border border-green-600 text-green-600 rounded text-sm">
+            {notification}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="w-full bg-white p-6 rounded-lg shadow-md mb-10 max-w-lg mx-auto">
           <div className="mb-4">
             <label htmlFor="title" className="block text-sm font-semibold text-gray-800">Title</label>
@@ -140,26 +177,26 @@ const CreatePost = () => {
           </div>
 
           <div className="mb-4">
-            <label htmlFor="description" className="block text-sm font-semibold text-gray-800 bg-blend-hard-light">Description</label>
-            <ReactQuill
+            <label htmlFor="description" className="block text-sm font-semibold text-gray-800">Description</label>
+            <textarea
               id="description"
               value={description}
-              onChange={setDescription}
-              className="bg-white rounded-md h-64" // Increased height
-              theme="snow"
-            />
+              onChange={(e) => setDescription(e.target.value)}
+              required
+              className="mt-2 p-2 w-full border rounded-md shadow-sm resize-y max-h-48 overflow-auto"
+              rows="140"
+            ></textarea>
           </div>
 
           {preview && (
             <div className="mb-4 relative">
-              <img src={preview} alt="Preview" className="w-full max-h-72 object-cover rounded-lg border shadow" />
+              <img src={preview} alt="Preview" className="max-w-full h-auto rounded-md" />
               <button
                 type="button"
                 onClick={handleRemoveImage}
-                className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-700"
-                aria-label="Remove image"
+                className="absolute top-0 right-0 bg-red-100 text-white p-2 rounded-full hover:bg-red-600"
               >
-                ❌
+                <i className="fas fa-times">❌</i> {/* FontAwesome Close Icon */}
               </button>
             </div>
           )}
@@ -185,12 +222,7 @@ const CreatePost = () => {
           </button>
         </form>
 
-        {/* POSTS LIST (Optional for future UI development) */}
-        {posts.map((post) => (
-          <div key={post._id}>
-            {/* Render post details */}
-          </div>
-        ))}
+        {/* You can render your posts list below here if needed */}
       </div>
     </div>
   );
