@@ -216,14 +216,14 @@ const filteredPosts = posts
       <div className="max-w-5xl mx-auto">
         <h1 className="text-4xl font-bold text-center text-blue-700 mb-6">Welcome, Admin</h1>
 
-        <div className="flex justify-center gap-4 mb-6">
-          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'all' ? 'bg-blue-600 text-white' : 'bg-white border'}`} onClick={() => setActiveTab('all')}>
+        <div className="flex flex-wrap justify-center gap-4 mb-6">
+          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'all' ? 'bg-blue-600 text-white' : 'bg-white border'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('all')}>
             <FileText size={18} /> All Posts
           </button>
-          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'reported' ? 'bg-yellow-500 text-white' : 'bg-white border'}`} onClick={() => setActiveTab('reported')}>
+          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'reported' ? 'bg-yellow-500 text-white' : 'bg-white border'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('reported')}>
             <Flag size={18} /> Reported Posts
           </button>
-          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'restored' ? 'bg-green-500 text-white' : 'bg-white border'}`} onClick={() => setActiveTab('restored')}>
+          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'restored' ? 'bg-green-500 text-white' : 'bg-white border'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('restored')}>
             <Flag size={18} /> Restored Posts
           </button>
         </div>
@@ -235,7 +235,7 @@ const filteredPosts = posts
               placeholder="Search posts by title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm"
+              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <div className="space-y-6">
               {filteredPosts.map((post) => renderPostCard(post))}
@@ -250,7 +250,7 @@ const filteredPosts = posts
               placeholder="Search reported posts by title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm"
+              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
             />
             <div className="space-y-6">
               {reportedPosts
@@ -268,7 +268,7 @@ const filteredPosts = posts
               placeholder="Search restored posts by title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm"
+              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             <div className="space-y-6">
               {deletedPosts
@@ -276,13 +276,13 @@ const filteredPosts = posts
                 .map((post) => (
                   <div key={post._id} className="p-6 bg-gray-200 rounded-lg shadow-md">
                     <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
-                    <p className="mb-2">{post.description}</p>
                     <p className="text-sm text-gray-600">Author: {post.authorName}</p>
+                    <p className="mb-2">{post.description}</p>
                     <p className="text-sm text-gray-600">{formatDate(post.createdAt)}</p>
                     <div className="mt-3">
                       <button
                         onClick={() => handleRestore(post._id)}
-                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300"
                       >
                         Restore
                       </button>
