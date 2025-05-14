@@ -188,70 +188,81 @@ const [expandedPosts, setExpandedPosts] = useState(new Set());
             {notification}
           </div>
         )}
+{isModalOpen && (
+  <div className="fixed inset-0 bg-gray-900 bg-opacity-60 flex justify-center items-center z-20 transition-opacity duration-300 opacity-92">
+    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-xl transform transition-transform duration-300 translate-y-0 opacity-100">
+      <button
+        onClick={() => setIsModalOpen(false)}
+        className="absolute top-4 right-4 text-purple-500 hover:text-purple-700 text-xl"
+      >
+        ✖
+      </button>
+      <h3 className="text-2xl font-semibold text-center text-gray-800 mb-6">Edit Post</h3>
 
-        {/* Modal for editing a post */}
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-gray-900 bg-opacity- flex justify-center items-center z-20 transition-opacity duration-300 opacity-92">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg transform transition-transform duration-300 translate-y-0 opacity-100">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="absolute top-2 right-2 text-purple-500 hover:text-purple-700"
-              >
-                X
-              </button>
-              <h3 className="text-xl font-semibold mb-4">Edit Post</h3>
+      {/* Image preview with the option to remove it (only show if there's a preview) */}
+      {preview && (
+        <div className="mb-4 relative">
+          <img src={preview} alt="Preview" className="w-full h-auto rounded-lg mb-2 shadow-md" />
+          <button
+            type="button"
+            onClick={handleRemoveImage}
+            className="absolute top-2 right-2 text-white bg-red-500 hover:bg-red-700 rounded-full p-2"
+          >
+            ✖
+          </button>
+        </div>
+      )}
 
-              {/* Image preview with the option to remove it */}
-              {preview && (
-                <div className="mb-4">
-                  <img src={preview} alt="Preview" className="w-full h-auto rounded-lg mb-2" />
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="text-red-500 mt-2"
-                  >
-                    Remove Image
-                  </button>
-                </div>
-              )}
-
-              {/* Form fields */}
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Title"
-                  required
-                  className="w-full p-3 border border-gray-300 rounded-lg"
-                />
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Description"
-                  required
-                  rows="6" // Increased height for the description
-                  className="w-full p-3 border border-gray-300 rounded-lg"
-                />
-                <input
-                  type="file"
-                  onChange={handleImageChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg"
-                />
-                <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
-                  Submit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)} // Back button to close the modal
-                  className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 mt-4"
-                >
-                  Back
-                </button>
-              </form>
-            </div>
+      {/* Form fields */}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Title"
+          required
+          className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300"
+        />
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Description"
+          required
+          rows="4"
+          className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300"
+        />
+        
+        {/* Display media selection only if no image is uploaded */}
+        {!preview && (
+          <div className="space-y-2">
+            <input
+              type="file"
+              onChange={handleImageChange}
+              className="w-full p-3 border border-gray-300 rounded-lg cursor-pointer hover:border-purple-500 transition duration-300"
+            />
           </div>
         )}
+
+        <div className="flex justify-between items-center">
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+          >
+            Submit
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(false)}
+            className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 mt-4"
+          >
+            Back
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
 
        {/* Post list */}
         <div className="w-full mt-8 space-y-6">
