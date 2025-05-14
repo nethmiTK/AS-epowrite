@@ -244,31 +244,52 @@ const filteredPosts = posts
         )}
 
         {activeTab === 'reported' && (
-          <div className="space-y-6">
-            {reportedPosts
-              .filter(post => !post.isDeleted)
-              .map((post) => renderPostCard(post, true))}
-          </div>
+          <>
+            <input
+              type="text"
+              placeholder="Search reported posts by title..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm"
+            />
+            <div className="space-y-6">
+              {reportedPosts
+                .filter(post => !post.isDeleted)
+                .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map((post) => renderPostCard(post, true))}
+            </div>
+          </>
         )}
 
         {activeTab === 'restored' && (
-          <div className="space-y-6">
-            {deletedPosts.map((post) => (
-              <div key={post._id} className="p-6 bg-gray-200 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
-                <p className="mb-2">{post.description}</p>
-                <p className="text-sm text-gray-600">{formatDate(post.createdAt)}</p>
-                <div className="mt-3">
-                  <button
-                    onClick={() => handleRestore(post._id)}
-                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                  >
-                    Restore
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <>
+            <input
+              type="text"
+              placeholder="Search restored posts by title..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm"
+            />
+            <div className="space-y-6">
+              {deletedPosts
+                .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map((post) => (
+                  <div key={post._id} className="p-6 bg-gray-200 rounded-lg shadow-md">
+                    <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
+                    <p className="mb-2">{post.description}</p>
+                    <p className="text-sm text-gray-600">{formatDate(post.createdAt)}</p>
+                    <div className="mt-3">
+                      <button
+                        onClick={() => handleRestore(post._id)}
+                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                      >
+                        Restore
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </>
         )}
       </div>
     </div>
