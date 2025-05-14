@@ -277,6 +277,7 @@ const filteredPosts = posts
                   <div key={post._id} className="p-6 bg-gray-200 rounded-lg shadow-md">
                     <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
                     <p className="mb-2">{post.description}</p>
+                    <p className="text-sm text-gray-600">Author: {post.authorName}</p>
                     <p className="text-sm text-gray-600">{formatDate(post.createdAt)}</p>
                     <div className="mt-3">
                       <button
