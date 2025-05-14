@@ -56,7 +56,7 @@ const A = () => {
         await axios.patch(`http://localhost:3001/api/posts/${postId}/softdelete`);
         setPosts(posts.filter(post => post._id !== postId));
         setReportedPosts(reportedPosts.filter(post => post._id !== postId));
-        toast.info('Post soft-deleted');
+        toast.info('Post deleted');
       } catch (err) {
         toast.error('Error soft deleting post');
       }
@@ -189,18 +189,12 @@ const A = () => {
           </button>
         )}
         <button
-          onClick={() => handleDelete(post._id)}
-          title="Delete"
-          className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
-        >
-          <Trash2 size={18} />
-        </button>
-        <button
           onClick={() => handleSoftDelete(post._id)}
-          title="Soft Delete"
-          className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+          title="Delete"
+          className="p-2 bg-red-600 text-white rounded-full hover:bg-blue-700"
         >
-          🗑️
+                    <Trash2 size={18} />
+
         </button>
       </div>
 
