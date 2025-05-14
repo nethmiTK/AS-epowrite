@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Pencil, Trash2, Check, FileText, Flag } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from 'react-router-dom';
 
 const A = () => {
   const [posts, setPosts] = useState([]);
@@ -15,6 +16,8 @@ const A = () => {
   const [showMoreMap, setShowMoreMap] = useState({});
   const [activeTab, setActiveTab] = useState('all');
   const [darkMode, setDarkMode] = useState(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPosts();
@@ -40,6 +43,15 @@ const A = () => {
 
   const toggleDarkMode = () => {
     setDarkMode((prevMode) => !prevMode);
+  };
+
+  const handleLogout = () => {
+    // Clear any stored user data (e.g., tokens)
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userData');
+
+    // Navigate to the login page
+    navigate('/');
   };
 
   const filteredPosts = posts
@@ -243,12 +255,20 @@ const A = () => {
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold text-center text-blue-700 dark:text-blue-300">Welcome, Admin</h1>
-          <button
-            onClick={toggleDarkMode}
-            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-300 dark:text-gray-900 dark:hover:bg-blue-400"
-          >
-            {darkMode ? 'Light Mode' : 'Dark Mode'}
-          </button>
+          <div className="flex gap-4">
+            <button
+              onClick={toggleDarkMode}
+              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-300 dark:text-gray-900 dark:hover:bg-blue-400"
+            >
+              {darkMode ? 'Light Mode' : 'Dark Mode'}
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+            >
+              Logout
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-wrap justify-center gap-4 mb-6">
