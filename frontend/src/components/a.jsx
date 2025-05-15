@@ -62,6 +62,7 @@ const A = () => {
     try {
       const res = await axios.get('http://localhost:3001/api/posts');
       setPosts(res.data);
+      
     } catch (err) {
       toast.error('Error fetching posts');
     }
@@ -71,6 +72,8 @@ const A = () => {
     try {
       const res = await axios.get('http://localhost:3001/api/posts/reported');
       setReportedPosts(res.data);
+              fetchPosts(); // Refresh all posts
+
     } catch (err) {
       toast.error('Error fetching reported posts');
     }
@@ -86,7 +89,6 @@ const A = () => {
   };
 
   const handleRestore = async (postId) => {
-    console.log('Restoring post with ID: ', postId); // Log the postId to verify
     if (window.confirm('Restore this post?')) {
       try {
         const res = await axios.patch(`http://localhost:3001/api/posts/${postId}/restore`);
@@ -94,8 +96,10 @@ const A = () => {
           toast.error('Post not found');
           return;
         }
-        setDeletedPosts(deletedPosts.filter(post => post._id !== postId));
-        setPosts(prev => [...prev, res.data]);
+        await fetchDeletedPosts(); // Refresh deleted posts
+        await fetchReportedPosts(); // Refresh reported posts
+        await fetchPosts(); // Refresh all posts
+        setActiveTab('restored'); // Ensure the "Restored" tab is active
         toast.success('Post restored successfully');
       } catch (err) {
         toast.error('Error restoring post');
@@ -107,8 +111,10 @@ const A = () => {
     if (window.confirm('Are you sure you want to soft delete this post?')) {
       try {
         await axios.patch(`http://localhost:3001/api/posts/${postId}/softdelete`);
-        setPosts(posts.filter(post => post._id !== postId));
-        setReportedPosts(reportedPosts.filter(post => post._id !== postId));
+        await fetchDeletedPosts(); // Refresh deleted posts
+        await fetchReportedPosts(); // Refresh reported posts
+        await fetchPosts(); // Refresh all posts
+        setActiveTab('reported'); // Ensure the "Reported" tab is active
         toast.info('Post deleted');
       } catch (err) {
         toast.error('Error soft deleting post');
@@ -279,7 +285,7 @@ const A = () => {
             <Flag size={18} /> Reported Posts
           </button>
           <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'restored' ? 'bg-green-500 text-white' : 'bg-white border dark:bg-gray-800 dark:border-gray-600'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('restored')}>
-            <Flag size={18} /> Restored Posts
+            <restore size={18} /> Restored Posts
           </button>
         </div>
 

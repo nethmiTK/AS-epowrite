@@ -23,25 +23,28 @@ const Dashboard = () => {
 const [expandedPosts, setExpandedPosts] = useState(new Set());
   
 
-  useEffect(() => {
- const fetchProfileAndPosts = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      try {
-        const profileRes = await axios.get('http://localhost:3001/api/users/profile', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setAuthor(profileRes.data.fullName);
+useEffect(() => {
+  const fetchProfileAndPosts = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const profileRes = await axios.get('http://localhost:3001/api/users/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAuthor(profileRes.data.fullName);
 
-        const postRes = await axios.get('http://localhost:3001/api/posts');
-        setPosts(postRes.data.filter(post => post.author === profileRes.data.fullName));
-      } catch (err) {
-        console.error('Error:', err);
-      }
-    };
-    fetchProfileAndPosts();
-  }, [author]);
+      const postRes = await axios.get('http://localhost:3001/api/posts');
+      const userPosts = postRes.data
+        .filter(post => post.author === profileRes.data.fullName)
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)); // Sort oldest first
 
+      setPosts(userPosts);
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
+  fetchProfileAndPosts();
+}, [author]);
 
   const handleLike = async (postId) => {
     if (!author) return alert('You must be logged in to like posts');
@@ -170,6 +173,36 @@ const [expandedPosts, setExpandedPosts] = useState(new Set());
 
   const handleOptionsToggle = (postId) => {
     setShowOptions(prev => (prev === postId ? null : postId));
+  };
+
+  const handleRestore = async (postId) => {
+    if (window.confirm('Restore this post?')) {
+      try {
+        const res = await axios.patch(`http://localhost:3001/api/posts/${postId}/restore`);
+        if (res.status === 404) {
+          alert('Post not found');
+          return;
+        }
+        fetchDeletedPosts(); // Refresh deleted posts
+        fetchPosts(); // Refresh all posts
+        alert('Post restored successfully');
+      } catch (err) {
+        console.error('Error restoring post:', err);
+      }
+    }
+  };
+
+  const handleSoftDelete = async (postId) => {
+    if (window.confirm('Are you sure you want to soft delete this post?')) {
+      try {
+        await axios.patch(`http://localhost:3001/api/posts/${postId}/softdelete`);
+        fetchReportedPosts(); // Refresh reported posts
+        fetchPosts(); // Refresh all posts
+        alert('Post deleted successfully');
+      } catch (err) {
+        console.error('Error soft deleting post:', err);
+      }
+    }
   };
 
   // Function to generate profile picture (first letter of author's name)
