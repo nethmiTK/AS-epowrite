@@ -61,12 +61,13 @@ const CreatePost = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Remove HTML tags from title only
+    // Remove HTML tags from title and description
     const plainTitle = title.replace(/<[^>]+>/g, ''); // Remove all HTML tags from the title
+    const plainDescription = description.replace(/<[^>]+>/g, ''); // Remove all HTML tags from the description
 
     const formData = new FormData();
     formData.append('title', plainTitle); // Use plain text title here
-    formData.append('description', description); // Save description with HTML content intact
+    formData.append('description', plainDescription); // Use plain text description here
     formData.append('author', author);
     if (media) formData.append('media', media);
 
