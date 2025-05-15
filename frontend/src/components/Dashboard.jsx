@@ -304,13 +304,13 @@ const Dashboard = () => {
                 )}
               </div>
               <h2 className="text-xl font-semibold text-gray-800">{post.title}</h2>
-              <p className="text-gray-700 mt-2">
-                {expandedPosts.has(post._id)
-                  ? post.description
-                  : post.description.length > 150
-                    ? `${post.description.slice(0, 150)}...`
-                    : post.description}
-              </p>
+              <p className="text-gray-700 mt-2" dangerouslySetInnerHTML={{
+                  __html: expandedPosts.has(post._id)
+                      ? post.description
+                      : post.description.length > 150
+                          ? `${post.description.slice(0, 150)}...`
+                          : post.description
+              }}></p>
 
               {post.description.length > 150 && (
                 <button

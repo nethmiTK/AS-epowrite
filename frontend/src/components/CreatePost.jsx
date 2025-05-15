@@ -58,18 +58,12 @@ const CreatePost = () => {
     setPreview(null);
   };
 
-  // Strip HTML tags from the description before saving
-  const stripHtmlTags = (html) => {
-    const div = document.createElement('div');
-    div.innerHTML = html;
-    return div.textContent || div.innerText || '';
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const formData = new FormData();
     formData.append('title', title);
-    formData.append('description', stripHtmlTags(description)); // Save plain text
+    formData.append('description', description); // Save description as HTML
     formData.append('author', author);
     formData.append('authorName', authorname);
     if (media) formData.append('media', media);
