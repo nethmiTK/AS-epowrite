@@ -187,33 +187,13 @@ const A = () => {
       ) : (
         <>
           <h2 className="text-2xl font-semibold mb-2 text-gray-800 dark:text-gray-200">{post.title}</h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-2">
-            {post.description.length > 200 ? (
-              showMoreMap[post._id] ? (
-                <>
-                  {post.description}{' '}
-                  <button
-                    onClick={() => toggleShowMore(post._id)}
-                    className="text-blue-600 hover:underline text-sm dark:text-blue-400"
-                  >
-                    Show less
-                  </button>
-                </>
-              ) : (
-                <>
-                  {post.description.slice(0, 200)}...{' '}
-                  <button
-                    onClick={() => toggleShowMore(post._id)}
-                    className="text-blue-600 hover:underline text-sm dark:text-blue-400"
-                  >
-                    Show more
-                  </button>
-                </>
-              )
-            ) : (
-              post.description
-            )}
-          </p>
+          <p className="text-gray-700 dark:text-gray-300 mb-2" dangerouslySetInnerHTML={{
+            __html: post.description.length > 200
+              ? showMoreMap[post._id]
+                ? post.description
+                : `${post.description.slice(0, 200)}...`
+              : post.description
+          }}></p>
         </>
       )}
 
