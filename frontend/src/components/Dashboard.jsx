@@ -1,29 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+
 const Dashboard = () => {
   const [posts, setPosts] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [media, setMedia] = useState(null);
   const [preview, setPreview] = useState(null);
-
   const [showForm, setShowForm] = useState(false);
+
   const [notification, setNotification] = useState('');
   const [author, setAuthor] = useState('');
   const [selectedPostId, setSelectedPostId] = useState(null);
-
   const [commentText, setCommentText] = useState('');
-
   const [userLikes, setUserLikes] = useState(new Set());
   const [showComments, setShowComments] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showOptions, setShowOptions] = useState(null);
+  const [expandedPosts, setExpandedPosts] = useState(new Set());
 
-const [expandedPosts, setExpandedPosts] = useState(new Set());
-  
-
-useEffect(() => {
+  useEffect(() => {
   const fetchProfileAndPosts = async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -34,17 +31,40 @@ useEffect(() => {
       setAuthor(profileRes.data.fullName);
 
       const postRes = await axios.get('http://localhost:3001/api/posts');
-      const userPosts = postRes.data
-        .filter(post => post.author === profileRes.data.fullName)
-        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)); // Sort oldest first
-
-      setPosts(userPosts);
+      const sortedPosts = postRes.data
+        .filter(post => post.author === profileRes.data.email)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort posts by date in descending order
+      setPosts(sortedPosts);
     } catch (err) {
       console.error('Error:', err);
     }
   };
   fetchProfileAndPosts();
 }, [author]);
+
+
+  const toggleExpanded = (postId) => {
+    setExpandedPosts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
+  };
+  const handleDelete = async (postId) => {
+    try {
+      await axios.delete(`http://localhost:3001/api/posts/${postId}`);
+      setPosts(posts.filter(post => post._id !== postId));
+      toast.success('Post deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting post:', err);
+      toast.error('Error deleting post');
+    }
+  };
+  
 
   const handleLike = async (postId) => {
     if (!author) return alert('You must be logged in to like posts');
@@ -159,50 +179,8 @@ useEffect(() => {
     setIsModalOpen(true); // Open the modal for editing
   };
 
-  const handleDelete = async (postId) => {
-    try {
-      await axios.delete(`http://localhost:3001/api/posts/${postId}`);
-      const updated = await axios.get('http://localhost:3001/api/posts');
-      setPosts(updated.data.filter(post => post.author === author));
-      setSelectedPostId(null);
-      setShowOptions(null); // Close options after delete
-    } catch (err) {
-      console.error('Error deleting:', err);
-    }
-  };
-
   const handleOptionsToggle = (postId) => {
     setShowOptions(prev => (prev === postId ? null : postId));
-  };
-
-  const handleRestore = async (postId) => {
-    if (window.confirm('Restore this post?')) {
-      try {
-        const res = await axios.patch(`http://localhost:3001/api/posts/${postId}/restore`);
-        if (res.status === 404) {
-          alert('Post not found');
-          return;
-        }
-        fetchDeletedPosts(); // Refresh deleted posts
-        fetchPosts(); // Refresh all posts
-        alert('Post restored successfully');
-      } catch (err) {
-        console.error('Error restoring post:', err);
-      }
-    }
-  };
-
-  const handleSoftDelete = async (postId) => {
-    if (window.confirm('Are you sure you want to soft delete this post?')) {
-      try {
-        await axios.patch(`http://localhost:3001/api/posts/${postId}/softdelete`);
-        fetchReportedPosts(); // Refresh reported posts
-        fetchPosts(); // Refresh all posts
-        alert('Post deleted successfully');
-      } catch (err) {
-        console.error('Error soft deleting post:', err);
-      }
-    }
   };
 
   // Function to generate profile picture (first letter of author's name)
@@ -213,91 +191,78 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 px-4 py-6 sm:px-6 lg:px-8 pt-40">
       <div className="max-w-3xl mx-auto flex flex-col items-center justify-center">
-         
-        
-
         {notification && (
           <div className="mb-4 p-3 bg-green-100 border border-green-600 text-green-600 rounded text-sm">
-            {notification}
-          </div>
-        )}
-{isModalOpen && (
-  <div className="fixed inset-0 bg-gray-900 bg-opacity-60 flex justify-center items-center z-20 transition-opacity duration-300 opacity-92">
-    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-xl transform transition-transform duration-300 translate-y-0 opacity-100">
-      <button
-        onClick={() => setIsModalOpen(false)}
-        className="absolute top-4 right-4 text-purple-500 hover:text-purple-700 text-xl"
-      >
-        ✖
-      </button>
-      <h3 className="text-2xl font-semibold text-center text-gray-800 mb-6">Edit Post</h3>
-
-      {/* Image preview with the option to remove it (only show if there's a preview) */}
-      {preview && (
-        <div className="mb-4 relative">
-          <img src={preview} alt="Preview" className="w-full h-auto rounded-lg mb-2 shadow-md" />
-          <button
-            type="button"
-            onClick={handleRemoveImage}
-            className="absolute top-2 right-2 text-white bg-red-500 hover:bg-red-700 rounded-full p-2"
-          >
-            ✖
-          </button>
-        </div>
-      )}
-
-      {/* Form fields */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Title"
-          required
-          className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300"
-        />
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Description"
-          required
-          rows="4"
-          className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300"
-        />
-        
-        {/* Display media selection only if no image is uploaded */}
-        {!preview && (
-          <div className="space-y-2">
-            <input
-              type="file"
-              onChange={handleImageChange}
-              className="w-full p-3 border border-gray-300 rounded-lg cursor-pointer hover:border-purple-500 transition duration-300"
-            />
-          </div>
+      <Notifications userEmail={userEmail} />
+      </div>
         )}
 
-        <div className="flex justify-between items-center">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
-          >
-            Submit
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(false)}
-            className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 mt-4"
-          >
-            Back
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
+        {/* Modal for editing a post */}
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-gray-900 bg-opacity- flex justify-center items-center z-20 transition-opacity duration-300 opacity-92">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg transform transition-transform duration-300 translate-y-0 opacity-100">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="absolute top-2 right-2 text-purple-500 hover:text-purple-700"
+              >
+                X
+              </button>
+              <h3 className="text-xl font-semibold mb-4">Edit Post</h3>
 
 
-       {/* Post list */}
+              {/* Image preview with the option to remove it */}
+              {preview && (
+                <div className="mb-4">
+                  <img src={preview} alt="Preview" className="w-full h-auto rounded-lg mb-2" />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="text-red-500 mt-2"
+                  >
+                    Remove Image
+                  </button>
+                </div>
+              )}
+
+              {/* Form fields */}
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Title"
+                  required
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                />
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Description"
+                  required
+                  rows="6" // Increased height for the description
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                />
+                <input
+                  type="file"
+                  onChange={handleImageChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                />
+                <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                  Submit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)} // Back button to close the modal
+                  className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 mt-4"
+                >
+                  Back
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Post list */}
         <div className="w-full mt-8 space-y-6">
           {posts.map((post) => (
             <div key={post._id} className="bg-white p-6 rounded-lg shadow-lg mb-6 relative">

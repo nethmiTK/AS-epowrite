@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
-import { FaTrashAlt } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const CreatePost = () => {
   const [posts, setPosts] = useState([]);
@@ -13,8 +12,9 @@ const CreatePost = () => {
   const [media, setMedia] = useState(null);
   const [preview, setPreview] = useState(null);
   const [author, setAuthor] = useState('');
+  const [authorname, setAuthorname] = useState('');
+
   const [selectedPostId, setSelectedPostId] = useState(null);
-  const quillRef = useRef();
 
   useEffect(() => {
     const fetchProfileAndPosts = async () => {
@@ -24,12 +24,14 @@ const CreatePost = () => {
         const profileRes = await axios.get('http://localhost:3001/api/users/profile', {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setAuthor(profileRes.data.fullName);
+        setAuthor(profileRes.data.email);
+        setAuthorname(profileRes.data.fullName);
 
         const postRes = await axios.get('http://localhost:3001/api/posts');
         setPosts(postRes.data.filter(post => post.author === profileRes.data.fullName));
       } catch (err) {
         console.error('Error:', err);
+        toast.error("Failed to load profile or posts.");
       }
     };
     fetchProfileAndPosts();
@@ -37,6 +39,14 @@ const CreatePost = () => {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+    if (!file.type.startsWith('image/')) {
+      toast.error("Please upload a valid image file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size should be less than 5MB.");
+      return;
+    }
     setMedia(file);
     const reader = new FileReader();
     reader.onloadend = () => setPreview(reader.result);
@@ -48,27 +58,20 @@ const CreatePost = () => {
     setPreview(null);
   };
 
-  const handleEditorChange = (value) => {
-    setDescription(value);
-  };
-
-  const handleFocus = () => {
-    const editor = quillRef.current.getEditor();
-    const length = editor.getLength();  // Get the length of the current text
-    editor.setSelection(length, length); // Move the cursor to the end
+  // Strip HTML tags from the description before saving
+  const stripHtmlTags = (html) => {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || div.innerText || '';
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Remove HTML tags from title and description
-    const plainTitle = title.replace(/<[^>]+>/g, ''); // Remove all HTML tags from the title
-    const plainDescription = description.replace(/<[^>]+>/g, ''); // Remove all HTML tags from the description
-
     const formData = new FormData();
-    formData.append('title', plainTitle); // Use plain text title here
-    formData.append('description', plainDescription); // Use plain text description here
+    formData.append('title', title);
+    formData.append('description', stripHtmlTags(description)); // Save plain text
     formData.append('author', author);
+    formData.append('authorName', authorname);
     if (media) formData.append('media', media);
 
     try {
@@ -93,8 +96,8 @@ const CreatePost = () => {
       const updated = await axios.get('http://localhost:3001/api/posts');
       setPosts(updated.data.filter(post => post.author === author));
     } catch (err) {
-      toast.error('❌ Failed to post!');
       console.error('Error posting:', err);
+      toast.error("Something went wrong while posting.");
     }
   };
 
@@ -112,92 +115,82 @@ const CreatePost = () => {
       const updated = await axios.get('http://localhost:3001/api/posts');
       setPosts(updated.data.filter(post => post.author === author));
       setSelectedPostId(null);
-      toast.info('🗑️ Post deleted!');
+      toast.success("🗑 Post deleted.");
     } catch (err) {
       console.error('Error deleting:', err);
-      toast.error('❌ Failed to delete post');
+      toast.error("Failed to delete post.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-900 px-4 py-6 pt-32 sm:px-6 lg:px-8">
-      <ToastContainer position="top-center" autoClose={3000} />
-
+    <div className="min-h-screen bg-gray-50 text-gray-900 px-4 py-6 sm:px-6 lg:px-8 pt-40">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <div className="max-w-3xl mx-auto flex flex-col items-center justify-center">
-        <form
-          onSubmit={handleSubmit}
-          className="w-full bg-white p-6 sm:p-8 rounded-lg shadow-lg mb-10 max-w-lg mx-auto"
-        >
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-            {selectedPostId ? 'Edit Post' : 'Create a New Post'}
-          </h2>
-
-          <div className="mb-6">
-            <label htmlFor="title" className="block text-sm font-semibold text-gray-800">
-              Title
-            </label>
+        <form onSubmit={handleSubmit} className="w-full bg-white p-6 rounded-lg shadow-md mb-10 max-w-lg mx-auto">
+          <div className="mb-4">
+            <label htmlFor="title" className="block text-sm font-semibold text-gray-800">Title</label>
             <input
               type="text"
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              className="mt-2 p-3 w-full border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="mt-2 p-2 w-full border rounded-md shadow-sm"
             />
           </div>
 
-          <div className="mb-6">
-            <label htmlFor="description" className="block text-sm font-semibold text-gray-800">
-              Description
-            </label>
+          <div className="mb-4">
+            <label htmlFor="description" className="block text-sm font-semibold text-gray-800 bg-blend-hard-light">Description</label>
             <ReactQuill
               id="description"
               value={description}
-              onChange={handleEditorChange}
-              className="mt-2 bg-white rounded-md shadow-sm"
-              onFocus={handleFocus}  // Call handleFocus on focus
+              onChange={setDescription}
+              className="bg-white rounded-md h-64" // Increased height
               theme="snow"
-              placeholder="Write your post content here..."
-              style={{ height: '200px', marginBottom: '50px' }}
-              ref={quillRef}
             />
           </div>
 
           {preview && (
-            <div className="mb-6 relative">
-              <img src={preview} alt="Preview" className="w-full max-h-64 object-cover rounded-md shadow-md" />
+            <div className="mb-4 relative">
+              <img src={preview} alt="Preview" className="w-full max-h-72 object-cover rounded-lg border shadow" />
               <button
                 type="button"
                 onClick={handleRemoveImage}
-                className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700"
+                className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-700"
+                aria-label="Remove image"
               >
-                <FaTrashAlt className="w-4 h-4" />
+                ❌
               </button>
             </div>
           )}
 
           {!preview && (
-            <div className="mb-6">
-              <label htmlFor="media" className="block text-sm font-semibold text-gray-800">
-                Upload Image
-              </label>
+            <div className="mb-4">
+              <label htmlFor="media" className="block text-sm font-semibold text-gray-800">Upload Image</label>
               <input
                 type="file"
                 id="media"
                 onChange={handleImageChange}
                 accept="image/*"
-                className="mt-2 p-2 w-full border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="mt-2"
               />
             </div>
           )}
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+            className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
           >
             {selectedPostId ? 'Update Post' : 'Create Post'}
           </button>
         </form>
+
+        {/* POSTS LIST (Optional for future UI development) */}
+        {posts.map((post) => (
+          <div key={post._id}>
+            {/* Render post details */}
+          </div>
+        ))}
       </div>
     </div>
   );
