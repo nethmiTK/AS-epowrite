@@ -54,15 +54,10 @@ const A = () => {
     navigate('/');
   };
 
-  const filteredPosts = posts
-    .filter(post => !post.isDeleted)
-    .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()));
-
   const fetchPosts = async () => {
     try {
       const res = await axios.get('http://localhost:3001/api/posts');
       setPosts(res.data);
-      
     } catch (err) {
       toast.error('Error fetching posts');
     }
@@ -72,8 +67,7 @@ const A = () => {
     try {
       const res = await axios.get('http://localhost:3001/api/posts/reported');
       setReportedPosts(res.data);
-              fetchPosts(); // Refresh all posts
-
+      fetchPosts(); // Refresh all posts
     } catch (err) {
       toast.error('Error fetching reported posts');
     }
@@ -162,6 +156,11 @@ const A = () => {
 
   const formatDate = (dateString) => new Date(dateString).toLocaleString();
 
+  const filteredPosts = posts
+    .filter(post => !post.isDeleted)
+    .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
   const renderPostCard = (post, isReported = false) => (
     <div key={post._id} className={`p-6 rounded-lg shadow-md ${isReported ? 'bg-red-50 border border-red-300' : 'bg-white dark:bg-gray-800'}`}>
       <div className="mb-3">
@@ -235,6 +234,15 @@ const A = () => {
     </div>
   );
 
+  const sortedReportedPosts = reportedPosts
+    .filter(post => !post.isDeleted)
+    .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const sortedDeletedPosts = deletedPosts
+    .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'} px-4 py-10 pt-32`}>
       <ToastContainer />
@@ -288,10 +296,7 @@ const A = () => {
               className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
             />
             <div className="space-y-6">
-              {reportedPosts
-                .filter(post => !post.isDeleted)
-                .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()))
-                .map((post) => renderPostCard(post, true))}
+              {sortedReportedPosts.map((post) => renderPostCard(post, true))}
             </div>
           </>
         )}
@@ -306,24 +311,22 @@ const A = () => {
               className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
             />
             <div className="space-y-6">
-              {deletedPosts
-                .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()))
-                .map((post) => (
-                  <div key={post._id} className="p-6 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md">
-                    <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">{post.title}</h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Author: {post.authorName}</p>
-                    <p className="mb-2 text-gray-800 dark:text-gray-300">{post.description}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(post.createdAt)}</p>
-                    <div className="mt-3">
-                      <button
-                        onClick={() => handleRestore(post._id)}
-                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300 flex items-center gap-2"
-                      >
-                        <RefreshCw size={18} />  
-                      </button>
-                    </div>
+              {sortedDeletedPosts.map((post) => (
+                <div key={post._id} className="p-6 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md">
+                  <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">{post.title}</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Author: {post.authorName}</p>
+                  <p className="mb-2 text-gray-800 dark:text-gray-300">{post.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(post.createdAt)}</p>
+                  <div className="mt-3">
+                    <button
+                      onClick={() => handleRestore(post._id)}
+                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300 flex items-center gap-2"
+                    >
+                      <RefreshCw size={18} />  
+                    </button>
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
           </>
         )}
