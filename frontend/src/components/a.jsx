@@ -262,7 +262,6 @@ const A = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold text-center text-blue-700 dark:text-blue-300">Welcome, Admin</h1>
           <div className="flex gap-4">
-            
             <button
               onClick={handleLogout}
               className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
