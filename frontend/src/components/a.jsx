@@ -1,7 +1,7 @@
 // AdminPosts.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Pencil, Trash2, Check, FileText, Flag } from 'lucide-react';
+import { Pencil, Trash2, Check, FileText, Flag, RefreshCw } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
@@ -263,12 +263,6 @@ const A = () => {
           <h1 className="text-4xl font-bold text-center text-blue-700 dark:text-blue-300">Welcome, Admin</h1>
           <div className="flex gap-4">
             <button
-              onClick={toggleDarkMode}
-              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-300 dark:text-gray-900 dark:hover:bg-blue-400"
-            >
-              {darkMode ? 'Light Mode' : 'Dark Mode'}
-            </button>
-            <button
               onClick={handleLogout}
               className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
             >
@@ -285,7 +279,7 @@ const A = () => {
             <Flag size={18} /> Reported Posts
           </button>
           <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'restored' ? 'bg-green-500 text-white' : 'bg-white border dark:bg-gray-800 dark:border-gray-600'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('restored')}>
-            <restore size={18} /> Restored Posts
+            <RefreshCw size={18} /> Restored Posts
           </button>
         </div>
 
@@ -343,9 +337,9 @@ const A = () => {
                     <div className="mt-3">
                       <button
                         onClick={() => handleRestore(post._id)}
-                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300"
+                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300 flex items-center gap-2"
                       >
-                        Restore
+                        <RefreshCw size={18} />  
                       </button>
                     </div>
                   </div>
