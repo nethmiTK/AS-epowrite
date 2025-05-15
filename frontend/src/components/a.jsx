@@ -234,14 +234,34 @@ const A = () => {
     </div>
   );
 
+  // Sort reported posts by reportedAt in descending order
   const sortedReportedPosts = reportedPosts
     .filter(post => !post.isDeleted)
     .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    .sort((a, b) => new Date(b.reportedAt) - new Date(a.reportedAt));
 
+  // Sort deleted posts by createdAt in descending order
   const sortedDeletedPosts = deletedPosts
     .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  // Render deleted posts with text editor formatting
+  const renderDeletedPostCard = (post) => (
+    <div key={post._id} className="p-6 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md">
+      <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">{post.title}</h2>
+      <p className="text-sm text-gray-600 dark:text-gray-400">Author: {post.authorName}</p>
+      <p className="mb-2 text-gray-800 dark:text-gray-300" dangerouslySetInnerHTML={{ __html: post.description }}></p>
+      <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(post.createdAt)}</p>
+      <div className="mt-3">
+        <button
+          onClick={() => handleRestore(post._id)}
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300 flex items-center gap-2"
+        >
+          <RefreshCw size={18} />
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'} px-4 py-10 pt-32`}>
@@ -311,22 +331,7 @@ const A = () => {
               className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
             />
             <div className="space-y-6">
-              {sortedDeletedPosts.map((post) => (
-                <div key={post._id} className="p-6 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md">
-                  <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">{post.title}</h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Author: {post.authorName}</p>
-                  <p className="mb-2 text-gray-800 dark:text-gray-300">{post.description}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(post.createdAt)}</p>
-                  <div className="mt-3">
-                    <button
-                      onClick={() => handleRestore(post._id)}
-                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300 flex items-center gap-2"
-                    >
-                      <RefreshCw size={18} />  
-                    </button>
-                  </div>
-                </div>
-              ))}
+              {sortedDeletedPosts.map((post) => renderDeletedPostCard(post))}
             </div>
           </>
         )}
