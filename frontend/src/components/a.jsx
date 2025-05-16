@@ -20,6 +20,8 @@ const A = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [newMedia, setNewMedia] = useState({});
   const [removeMedia, setRemoveMedia] = useState({});
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [modalImageSrc, setModalImageSrc] = useState('');
 
   const navigate = useNavigate();
 
@@ -178,6 +180,16 @@ const A = () => {
     }));
   };
 
+  const handleImageClick = (src) => {
+    setModalImageSrc(src);
+    setShowImageModal(true);
+  };
+
+  const closeImageModal = () => {
+    setShowImageModal(false);
+    setModalImageSrc('');
+  };
+
   const formatDate = (dateString) => new Date(dateString).toLocaleString();
 
   const filteredPosts = posts
@@ -264,14 +276,18 @@ const A = () => {
             <img
               src={`http://localhost:3001/${post.media}`}
               alt="Post"
-              className="w-full h-48 object-cover rounded-lg mb-4"
+              className="w-full max-w-[250px] h-[150px] object-cover rounded-lg mb-4 cursor-pointer mx-auto"
+              onClick={() => handleImageClick(`http://localhost:3001/${post.media}`)}
+              style={{ display: 'block' }}
             />
           )}
           {post.media && isRestored && (
             <img
               src={`http://localhost:3001/${post.media}`}
               alt="Restored Post"
-              className="w-full h-48 object-cover rounded-lg mb-4"
+              className="w-full max-w-[250px] h-[150px] object-cover rounded-lg mb-4 cursor-pointer mx-auto"
+              onClick={() => handleImageClick(`http://localhost:3001/${post.media}`)}
+              style={{ display: 'block' }}
             />
           )}
         </>
@@ -329,6 +345,20 @@ const A = () => {
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'} px-4 py-10 pt-32`}>
       <ToastContainer />
+      {showImageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 overflow-auto" onClick={closeImageModal}>
+          <div className="relative" onClick={e => e.stopPropagation()}>
+            <img src={modalImageSrc} alt="Full" className="rounded-lg shadow-lg" style={{ display: 'block' }} />
+            <button
+              className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-2 hover:bg-red-700"
+              onClick={closeImageModal}
+              title="Close"
+            >
+              <X size={24} />
+            </button>
+          </div>
+        </div>
+      )}
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold text-center text-blue-700 dark:text-blue-300">Welcome, Admin</h1>
