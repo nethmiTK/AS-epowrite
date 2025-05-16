@@ -2,7 +2,6 @@
 
 **epowrite** is a clean and expressive full-stack blog platform where users can create, browse, and manage blog posts. It’s built using the MERN stack with modern tools like Formik, Yup, React Context, Multer, and Toastify.
 
----
 ## 🧰 Installation
 
 
@@ -22,7 +21,7 @@
 
 ## 🎨 Features
 
-### 🔐 Authentication
+### 🔐 Authentication(USE,ADMIN)
 - User registration & login with validation (Formik + Yup)
 - JWT-based protected routes
 
@@ -35,17 +34,28 @@
   - Publish date
 - Search bar to filter posts by title
 - Click on a post to view full details
+- my posts only display
+- all post display
+- crud operation add posts
 
 ### 📄 Post Details Page
 - Shows complete content of the selected post
 
 ---
+### 📄 Profile change
+user details can change
+
 
 ## 🛠 Backend Functionality
 
 ### 👤 User Management
 - Register and login users
 - Password hashing and authentication via JWT
+- ### 📄 Admin panlel
+- add the soft delete funtion
+- restore
+- handle all post and users
+
 
 ### ✍️ Blog Management (EPO - *Expressive Post Operations*)
 - **Create** new blog posts
