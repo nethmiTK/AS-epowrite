@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Dashboard = () => {
   const [posts, setPosts] = useState([]);
@@ -21,27 +22,26 @@ const Dashboard = () => {
   const [expandedPosts, setExpandedPosts] = useState(new Set());
 
   useEffect(() => {
-  const fetchProfileAndPosts = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-    try {
-      const profileRes = await axios.get('http://localhost:3001/api/users/profile', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setAuthor(profileRes.data.fullName);
+    const fetchProfileAndPosts = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      try {
+        const profileRes = await axios.get('http://localhost:3001/api/users/profile', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setAuthor(profileRes.data.email); // Set author to email
 
-      const postRes = await axios.get('http://localhost:3001/api/posts');
-      const sortedPosts = postRes.data
-        .filter(post => post.author === profileRes.data.email)
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Sort posts by date in descending order
-      setPosts(sortedPosts);
-    } catch (err) {
-      console.error('Error:', err);
-    }
-  };
-  fetchProfileAndPosts();
-}, [author]);
-
+        const postRes = await axios.get('http://localhost:3001/api/posts');
+        const sortedPosts = postRes.data
+          .filter(post => post.author === profileRes.data.email)
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setPosts(sortedPosts);
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    };
+    fetchProfileAndPosts();
+  }, [author]);
 
   const toggleExpanded = (postId) => {
     setExpandedPosts(prev => {
@@ -54,17 +54,17 @@ const Dashboard = () => {
       return newSet;
     });
   };
+
   const handleDelete = async (postId) => {
     try {
       await axios.delete(`http://localhost:3001/api/posts/${postId}`);
       setPosts(posts.filter(post => post._id !== postId));
-      toast.success('Post deleted successfully!');
+      toast.success('🗑 Post deleted successfully!');
     } catch (err) {
       console.error('Error deleting post:', err);
       toast.error('Error deleting post');
     }
   };
-  
 
   const handleLike = async (postId) => {
     if (!author) return alert('You must be logged in to like posts');
@@ -138,7 +138,7 @@ const Dashboard = () => {
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', description);
-    formData.append('author', author);
+    formData.append('author', author); // Always use email
     if (media) formData.append('media', media);
 
     try {
@@ -146,12 +146,12 @@ const Dashboard = () => {
         await axios.put(`http://localhost:3001/api/posts/${selectedPostId}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        setNotification('✅ Post updated successfully!');
+        toast.success('✅ Post updated successfully!');
       } else {
         await axios.post('http://localhost:3001/api/posts', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        setNotification('✅ Successfully posted!');
+        toast.success('✅ Successfully posted!');
       }
 
       setTitle('');
@@ -164,37 +164,40 @@ const Dashboard = () => {
       const updated = await axios.get('http://localhost:3001/api/posts');
       setPosts(updated.data.filter(post => post.author === author));
       setTimeout(() => setNotification(''), 3000);
-      setIsModalOpen(false); // Close the modal after submit
+      setIsModalOpen(false);
     } catch (err) {
       console.error('Error posting:', err);
+      toast.error('Error updating/creating post');
     }
   };
 
   const handleEdit = (post) => {
     setTitle(post.title);
     setDescription(post.description);
-    setPreview(`http://localhost:3001/${post.media}`);
+    setPreview(post.media ? `http://localhost:3001/${post.media}` : null);
     setSelectedPostId(post._id);
     setMedia(null);
-    setIsModalOpen(true); // Open the modal for editing
+    setIsModalOpen(true);
   };
 
   const handleOptionsToggle = (postId) => {
     setShowOptions(prev => (prev === postId ? null : postId));
   };
 
-  // Function to generate profile picture (first letter of author's name)
-  const generateProfilePicture = (name) => {
-    return name ? name.charAt(0).toUpperCase() : '';
+  // Function to generate profile picture (first letter of author's email)
+  const generateProfilePicture = (email) => {
+    return email ? email.charAt(0).toUpperCase() : '';
   };
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 px-4 py-6 sm:px-6 lg:px-8 pt-40">
       <div className="max-w-3xl mx-auto flex flex-col items-center justify-center">
+        <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+
         {notification && (
           <div className="mb-4 p-3 bg-green-100 border border-green-600 text-green-600 rounded text-sm">
-      <Notifications userEmail={userEmail} />
-      </div>
+            {notification}
+          </div>
         )}
 
         {/* Modal for editing a post */}
@@ -208,7 +211,6 @@ const Dashboard = () => {
                 X
               </button>
               <h3 className="text-xl font-semibold mb-4">Edit Post</h3>
-
 
               {/* Image preview with the option to remove it */}
               {preview && (
@@ -272,8 +274,8 @@ const Dashboard = () => {
                 </div>
                 <p className="font-semibold text-lg text-gray-800">{post.authorName}</p> 
                 <p className="text-sm text-gray-500">{new Date(post.createdAt).toLocaleString()}{post.isDeleted && (
-    <span className="text-red-500 font-semibold">(🚫 Reported and disabled🙅 Removed by admin .)</span>
-  )}</p>
+                  <span className="text-red-500 font-semibold">(🚫 Reported and disabled🙅 Removed by admin .)</span>
+                )}</p>
  
                 <button
                   onClick={(e) => {
