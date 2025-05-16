@@ -317,13 +317,18 @@ const Dashboard = () => {
                 )}
               </div>
               <h2 className="text-xl font-semibold text-gray-800">{post.title}</h2>
-              <p className="text-gray-700 mt-2" dangerouslySetInnerHTML={{
-                  __html: expandedPosts.has(post._id)
-                      ? post.description
-                      : post.description.length > 150
-                          ? `${post.description.slice(0, 150)}...`
-                          : post.description
-              }}></p>
+              <div className="flex items-center gap-2">
+                <p className="text-gray-700 mt-2" dangerouslySetInnerHTML={{
+                    __html: expandedPosts.has(post._id)
+                        ? post.description
+                        : post.description.length > 150
+                            ? `${post.description.slice(0, 150)}...`
+                            : post.description
+                }}></p>
+                {post.reported === true && (
+                  <span className="ml-2 text-red-600 font-semibold">🚫 Content Temporarily Unavailable</span>
+                )}
+              </div>
 
               {post.description.length > 150 && (
                 <button
