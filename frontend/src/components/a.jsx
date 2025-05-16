@@ -20,8 +20,6 @@ const A = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [newMedia, setNewMedia] = useState({});
   const [removeMedia, setRemoveMedia] = useState({});
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [modalImageSrc, setModalImageSrc] = useState('');
 
   const navigate = useNavigate();
 
@@ -180,16 +178,6 @@ const A = () => {
     }));
   };
 
-  const handleImageClick = (src) => {
-    setModalImageSrc(src);
-    setShowImageModal(true);
-  };
-
-  const closeImageModal = () => {
-    setShowImageModal(false);
-    setModalImageSrc('');
-  };
-
   const formatDate = (dateString) => new Date(dateString).toLocaleString();
 
   const filteredPosts = posts
@@ -276,18 +264,14 @@ const A = () => {
             <img
               src={`http://localhost:3001/${post.media}`}
               alt="Post"
-              className="w-full max-w-[350px] max-h-[250px] object-cover rounded-lg mb-4 cursor-pointer mx-auto"
-              onClick={() => handleImageClick(`http://localhost:3001/${post.media}`)}
-              style={{ display: 'block' }}
+              className="w-full h-48 object-cover rounded-lg mb-4"
             />
           )}
           {post.media && isRestored && (
             <img
               src={`http://localhost:3001/${post.media}`}
               alt="Restored Post"
-              className="w-full max-w-[350px] max-h-[250px] object-cover rounded-lg mb-4 cursor-pointer mx-auto"
-              onClick={() => handleImageClick(`http://localhost:3001/${post.media}`)}
-              style={{ display: 'block' }}
+              className="w-full h-48 object-cover rounded-lg mb-4"
             />
           )}
         </>
@@ -415,21 +399,6 @@ const A = () => {
           </>
         )}
       </div>
-
-      {showImageModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70" onClick={closeImageModal}>
-          <div className="relative" onClick={e => e.stopPropagation()}>
-            <img src={modalImageSrc} alt="Full" className="max-w-[90vw] max-h-[80vh] rounded-lg shadow-lg" />
-            <button
-              className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-2 hover:bg-red-700"
-              onClick={closeImageModal}
-              title="Close"
-            >
-              <X size={24} />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
