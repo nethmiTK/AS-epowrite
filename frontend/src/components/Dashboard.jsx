@@ -162,7 +162,10 @@ const Dashboard = () => {
       setSelectedPostId(null);
 
       const updated = await axios.get('http://localhost:3001/api/posts');
-      setPosts(updated.data.filter(post => post.author === author));
+      const sorted = updated.data
+        .filter(post => post.author === author)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setPosts(sorted);
       setTimeout(() => setNotification(''), 3000);
       setIsModalOpen(false);
     } catch (err) {
