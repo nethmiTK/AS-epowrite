@@ -64,8 +64,8 @@ const CreatePost = () => {
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', description); // Save description as HTML
-    formData.append('author', author);
-    formData.append('authorName', authorname);
+    formData.append('author', author); // author is user's email
+    formData.append('authorName', authorname); // authorname is user's full name
     if (media) formData.append('media', media);
 
     try {
