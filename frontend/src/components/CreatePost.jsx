@@ -134,12 +134,12 @@ const CreatePost = () => {
           </div>
 
           <div className="mb-4">
-            <label htmlFor="description" className="block text-sm font-semibold text-gray-800 bg-blend-hard-light">Description</label>
+            <label htmlFor="description" className="block text-sm font-semibold text-gray-800 bg-blend-hard-light w">Description</label>
             <ReactQuill
               id="description"
               value={description}
               onChange={setDescription}
-              className="bg-white rounded-md h-64" // Increased height
+              className="bg-white rounded-md h-60" // Increased height
               theme="snow"
             />
           </div>
@@ -150,17 +150,18 @@ const CreatePost = () => {
               <button
                 type="button"
                 onClick={handleRemoveImage}
-                className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-700"
+                className="absolute top-2 right-2 bg-white text-red-600 p-2 rounded-full hover:bg-red-100 shadow"
                 aria-label="Remove image"
+                title="Remove image"
               >
-                ❌
+                🗑️
               </button>
             </div>
           )}
 
-          {!preview && (
-            <div className="mb-4">
-              <label htmlFor="media" className="block text-sm font-semibold text-gray-800">Upload Image</label>
+          <div className="mb-4">
+            <label htmlFor="media" className="block text-sm font-semibold text-gray-800">Upload Image</label>
+            {!preview && (
               <input
                 type="file"
                 id="media"
@@ -168,8 +169,8 @@ const CreatePost = () => {
                 accept="image/*"
                 className="mt-2"
               />
-            </div>
-          )}
+            )}
+          </div>
 
           <button
             type="submit"
