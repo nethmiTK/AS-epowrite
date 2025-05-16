@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -7,8 +11,8 @@ const Dashboard = () => {
   const [posts, setPosts] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [media, setMedia] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [media, setMedia] = useState([]);
+  const [preview, setPreview] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
   const [notification, setNotification] = useState('');
@@ -121,16 +125,25 @@ const Dashboard = () => {
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setMedia(file);
-    const reader = new FileReader();
-    reader.onloadend = () => setPreview(reader.result);
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files);
+    const newMedia = [...media, ...files];
+    setMedia(newMedia);
+    // Generate previews for all images
+    const readers = files.map(file => {
+      return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+    });
+    Promise.all(readers).then(results => {
+      setPreview(prev => [...prev, ...results]);
+    });
   };
 
-  const handleRemoveImage = () => {
-    setMedia(null);
-    setPreview(null);
+  const handleRemoveImage = (idx) => {
+    setMedia(media.filter((_, i) => i !== idx));
+    setPreview(preview.filter((_, i) => i !== idx));
   };
 
   const handleSubmit = async (e) => {
@@ -139,7 +152,7 @@ const Dashboard = () => {
     formData.append('title', title);
     formData.append('description', description);
     formData.append('author', author); // Always use email
-    if (media) formData.append('media', media);
+    media.forEach((file, idx) => formData.append('media', file));
 
     try {
       if (selectedPostId) {
@@ -156,8 +169,8 @@ const Dashboard = () => {
 
       setTitle('');
       setDescription('');
-      setMedia(null);
-      setPreview(null);
+      setMedia([]);
+      setPreview([]);
       setShowForm(false);
       setSelectedPostId(null);
 
@@ -177,9 +190,9 @@ const Dashboard = () => {
   const handleEdit = (post) => {
     setTitle(post.title);
     setDescription(post.description);
-    setPreview(post.media ? `http://localhost:3001/${post.media}` : null);
+    setPreview(post.media ? [`http://localhost:3001/${post.media}`] : []);
     setSelectedPostId(post._id);
-    setMedia(null);
+    setMedia([]);
     setIsModalOpen(true);
   };
 
@@ -205,27 +218,34 @@ const Dashboard = () => {
 
         {/* Modal for editing a post */}
         {isModalOpen && (
-          <div className="fixed inset-0 bg-gray-900 bg-opacity- flex justify-center items-center z-20 transition-opacity duration-300 opacity-92">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg transform transition-transform duration-300 translate-y-0 opacity-100">
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-20">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-2 right-2 text-purple-500 hover:text-purple-700"
+                className="absolute top-2 right-2 text-purple-500 hover:text-purple-700 text-xl"
+                aria-label="Close edit modal"
               >
-                X
+                ×
               </button>
               <h3 className="text-xl font-semibold mb-4">Edit Post</h3>
 
-              {/* Image preview with the option to remove it */}
-              {preview && (
-                <div className="mb-4">
-                  <img src={preview} alt="Preview" className="w-full h-auto rounded-lg mb-2" />
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="text-red-500 mt-2"
-                  >
-                    Remove Image
-                  </button>
+              {/* Image previews with remove icon */}
+              {preview.length > 0 && (
+                <div className="mb-4 flex flex-wrap gap-4 justify-center">
+                  {preview.map((img, idx) => (
+                    <div key={idx} className="relative">
+                      <img src={img} alt={`Preview ${idx}`} className="h-32 w-32 object-cover rounded-lg border shadow" />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(idx)}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-700 text-xs flex items-center justify-center"
+                        aria-label="Remove image"
+                        style={{ transform: 'translate(50%, -50%)' }}
+                      >
+                        ❌
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -239,25 +259,25 @@ const Dashboard = () => {
                   required
                   className="w-full p-3 border border-gray-300 rounded-lg"
                 />
-                <textarea
+                <ReactQuill
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Description"
-                  required
-                  rows="6" // Increased height for the description
-                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  onChange={setDescription}
+                  className="bg-white rounded-md h-40"
+                  theme="snow"
                 />
                 <input
                   type="file"
                   onChange={handleImageChange}
                   className="w-full p-3 border border-gray-300 rounded-lg"
+                  accept="image/*"
+                  multiple
                 />
                 <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
                   Submit
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)} // Back button to close the modal
+                  onClick={() => setIsModalOpen(false)}
                   className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 mt-4"
                 >
                   Back
