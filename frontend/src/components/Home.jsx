@@ -185,15 +185,14 @@ const HomePage = () => {
                 )}
 
                 {post.media && isImage(post.media) && (
-  <div className="flex justify-center mb-4">
-    <img
-      src={`http://localhost:3001/${post.media}`}
-      alt="Post"
-      className="rounded-lg max-w-[500px] w-full h-auto"
-    />
-  </div>
-)}
-
+                  <div className="flex justify-center mb-4">
+                    <img
+                      src={`http://localhost:3001/${post.media}`}
+                      alt="Post"
+                      className="rounded-lg max-w-[300px] w-full h-auto"
+                    />
+                  </div>
+                )}
 
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   <button

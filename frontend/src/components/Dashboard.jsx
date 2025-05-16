@@ -17,6 +17,7 @@ const Dashboard = () => {
 
   const [notification, setNotification] = useState('');
   const [author, setAuthor] = useState('');
+  const [authorName, setAuthorName] = useState('');
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [userLikes, setUserLikes] = useState(new Set());
@@ -34,6 +35,7 @@ const Dashboard = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setAuthor(profileRes.data.email); // Set author to email
+        setAuthorName(profileRes.data.fullName || profileRes.data.name || profileRes.data.email); // Prefer full name
 
         const postRes = await axios.get('http://localhost:3001/api/posts');
         const sortedPosts = postRes.data
@@ -100,7 +102,7 @@ const Dashboard = () => {
     try {
       const res = await axios.post(`http://localhost:3001/api/posts/${postId}/comment`, {
         comment: commentText,
-        user: author,
+        user: authorName,
       });
       setPosts(posts.map(post =>
         post._id === postId ? res.data : post
