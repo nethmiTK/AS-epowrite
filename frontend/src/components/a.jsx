@@ -188,7 +188,9 @@ const A = () => {
   const renderPostCard = (post, isReported = false, isRestored = false) => (
     <div key={post._id} className={`p-6 rounded-lg shadow-md ${isReported ? 'bg-red-50 border border-red-300' : isRestored ? 'bg-gray-200 dark:bg-gray-800' : 'bg-white dark:bg-gray-800'}`}>
       <div className="mb-3">
-        <p className="font-semibold text-lg text-gray-800 dark:text-gray-200">{post.author || post.authorName}</p>
+        <p className="font-semibold text-lg text-gray-800 dark:text-gray-200">
+          {post.authorName || post.author || 'Unknown'}
+        </p>
         <p className="text-sm text-gray-500 dark:text-gray-400">{formatDate(post.createdAt)}</p>
       </div>
 
