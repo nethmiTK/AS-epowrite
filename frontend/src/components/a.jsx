@@ -361,7 +361,7 @@ const A = () => {
               placeholder="Search posts by title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 bg-blue-50 dark:bg-gray-700"
             />
             <div className="space-y-6">
               {filteredPosts.map((post) => renderPostCard(post))}
@@ -376,7 +376,7 @@ const A = () => {
               placeholder="Search reported posts by title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 bg-yellow-50 dark:bg-gray-700"
             />
             <div className="space-y-6">
               {sortedReportedPosts.map((post) => renderPostCard(post, true))}
@@ -391,7 +391,7 @@ const A = () => {
               placeholder="Search restored posts by title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 bg-green-50 dark:bg-gray-700"
             />
             <div className="space-y-6">
               {sortedDeletedPosts.map((post) => renderPostCard(post, false, true))}
