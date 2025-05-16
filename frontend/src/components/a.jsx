@@ -161,10 +161,11 @@ const A = () => {
     .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-  const renderPostCard = (post, isReported = false) => (
-    <div key={post._id} className={`p-6 rounded-lg shadow-md ${isReported ? 'bg-red-50 border border-red-300' : 'bg-white dark:bg-gray-800'}`}>
+  // Updated renderPostCard to optionally show restore button
+  const renderPostCard = (post, isReported = false, isRestored = false) => (
+    <div key={post._id} className={`p-6 rounded-lg shadow-md ${isReported ? 'bg-red-50 border border-red-300' : isRestored ? 'bg-gray-200 dark:bg-gray-800' : 'bg-white dark:bg-gray-800'}`}>
       <div className="mb-3">
-        <p className="font-semibold text-lg text-gray-800 dark:text-gray-200">{post.author}</p>
+        <p className="font-semibold text-lg text-gray-800 dark:text-gray-200">{post.author || post.authorName}</p>
         <p className="text-sm text-gray-500 dark:text-gray-400">{formatDate(post.createdAt)}</p>
       </div>
 
@@ -205,7 +206,7 @@ const A = () => {
       )}
 
       <div className="flex gap-2 mt-4">
-        {editMode[post._id] ? (
+        {!isRestored && (editMode[post._id] ? (
           <button onClick={() => handleEditSave(post._id)} title="Save" className="p-2 bg-green-600 text-white rounded-full hover:bg-green-700">
             <Check size={18} />
           </button>
@@ -213,10 +214,20 @@ const A = () => {
           <button onClick={() => handleEditToggle(post)} title="Edit" className="p-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600">
             <Pencil size={18} />
           </button>
+        ))}
+        {!isRestored && (
+          <button onClick={() => handleSoftDelete(post._id)} title="Delete" className="p-2 bg-red-600 text-white rounded-full hover:bg-blue-700">
+            <Trash2 size={18} />
+          </button>
         )}
-        <button onClick={() => handleSoftDelete(post._id)} title="Delete" className="p-2 bg-red-600 text-white rounded-full hover:bg-blue-700">
-          <Trash2 size={18} />
-        </button>
+        {isRestored && (
+          <button
+            onClick={() => handleRestore(post._id)}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300 flex items-center gap-2"
+          >
+            <RefreshCw size={18} />
+          </button>
+        )}
       </div>
 
       {isReported && post.reports?.length > 0 && (
@@ -244,24 +255,6 @@ const A = () => {
   const sortedDeletedPosts = deletedPosts
     .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-  // Render deleted posts with text editor formatting
-  const renderDeletedPostCard = (post) => (
-    <div key={post._id} className="p-6 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">{post.title}</h2>
-      <p className="text-sm text-gray-600 dark:text-gray-400">Author: {post.authorName}</p>
-      <p className="mb-2 text-gray-800 dark:text-gray-300" dangerouslySetInnerHTML={{ __html: post.description }}></p>
-      <p className="text-sm text-gray-600 dark:text-gray-400">{formatDate(post.createdAt)}</p>
-      <div className="mt-3">
-        <button
-          onClick={() => handleRestore(post._id)}
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300 flex items-center gap-2"
-        >
-          <RefreshCw size={18} />
-        </button>
-      </div>
-    </div>
-  );
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'} px-4 py-10 pt-32`}>
@@ -331,7 +324,7 @@ const A = () => {
               className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
             />
             <div className="space-y-6">
-              {sortedDeletedPosts.map((post) => renderDeletedPostCard(post))}
+              {sortedDeletedPosts.map((post) => renderPostCard(post, false, true))}
             </div>
           </>
         )}
