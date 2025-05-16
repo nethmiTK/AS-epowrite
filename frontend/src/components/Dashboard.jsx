@@ -337,7 +337,8 @@ const Dashboard = () => {
                 <img
                   src={`http://localhost:3001/${post.media}`}
                   alt="Post media"
-                  className="mt-4 max-w-full h-auto rounded-lg"
+                  className="mt-4 rounded-lg object-cover"
+                  style={{ width: '450px', height: '400px' }}
                 />
               )}
 
@@ -382,9 +383,14 @@ const Dashboard = () => {
 
                   <div className="mt-4 space-y-4">
                     {post.comments.map((comment, idx) => (
-                      <div key={idx} className="p-3 border-b border-gray-200">
-                        <p className="font-semibold">{comment.user}</p>
-                        <p className="text-gray-700">{comment.comment}</p>
+                      <div key={idx} className="flex items-center gap-3 p-3 border-b border-gray-200">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-base font-bold">
+                          {comment.user ? comment.user.charAt(0).toUpperCase() : '?'}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm">{comment.user}</p>
+                          <p className="text-gray-700 text-sm">{comment.comment}</p>
+                        </div>
                       </div>
                     ))}
                   </div>
