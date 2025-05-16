@@ -124,26 +124,15 @@ const Dashboard = () => {
     return url.match(/\.(jpg|jpeg|png|gif)$/);
   };
 
+  // Only allow one image to be selected at a time
   const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    const newMedia = [...media, ...files];
-    setMedia(newMedia);
-    // Generate previews for all images
-    const readers = files.map(file => {
-      return new Promise(resolve => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-      });
-    });
-    Promise.all(readers).then(results => {
-      setPreview(prev => [...prev, ...results]);
-    });
-  };
-
-  const handleRemoveImage = (idx) => {
-    setMedia(media.filter((_, i) => i !== idx));
-    setPreview(preview.filter((_, i) => i !== idx));
+    const file = e.target.files[0];
+    if (!file) return;
+    setMedia([file]);
+    const reader = new FileReader();
+    reader.onloadend = () => setPreview([reader.result]);
+    reader.readAsDataURL(file);
+    toast.info('Image selected.');
   };
 
   const handleSubmit = async (e) => {
@@ -229,23 +218,21 @@ const Dashboard = () => {
               </button>
               <h3 className="text-xl font-semibold mb-4">Edit Post</h3>
 
-              {/* Image previews with remove icon */}
+              {/* Image preview with remove icon */}
               {preview.length > 0 && (
-                <div className="mb-4 flex flex-wrap gap-4 justify-center">
-                  {preview.map((img, idx) => (
-                    <div key={idx} className="relative">
-                      <img src={img} alt={`Preview ${idx}`} className="h-32 w-32 object-cover rounded-lg border shadow" />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(idx)}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-700 text-xs flex items-center justify-center"
-                        aria-label="Remove image"
-                        style={{ transform: 'translate(50%, -50%)' }}
-                      >
-                        ❌
-                      </button>
-                    </div>
-                  ))}
+                <div className="mb-4 flex justify-center">
+                  <div className="relative">
+                    <img src={preview[0]} alt="Preview" className="h-32 w-32 object-cover rounded-lg border shadow" />
+                    <button
+                      type="button"
+                      onClick={() => { setMedia([]); setPreview([]); toast.info('Image removed.'); }}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-700 text-xs flex items-center justify-center"
+                      aria-label="Remove image"
+                      style={{ transform: 'translate(50%, -50%)' }}
+                    >
+                      ❌
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -270,7 +257,6 @@ const Dashboard = () => {
                   onChange={handleImageChange}
                   className="w-full p-3 border border-gray-300 rounded-lg"
                   accept="image/*"
-                  multiple
                 />
                 <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
                   Submit
