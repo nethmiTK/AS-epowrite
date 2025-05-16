@@ -1,10 +1,12 @@
 // AdminPosts.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Pencil, Trash2, Check, FileText, Flag, RefreshCw } from 'lucide-react';
+import { Pencil, Trash2, Check, FileText, Flag, RefreshCw, X } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const A = () => {
   const [posts, setPosts] = useState([]);
@@ -16,6 +18,8 @@ const A = () => {
   const [showMoreMap, setShowMoreMap] = useState({});
   const [activeTab, setActiveTab] = useState('all');
   const [darkMode, setDarkMode] = useState(false);
+  const [newMedia, setNewMedia] = useState({});
+  const [removeMedia, setRemoveMedia] = useState({});
 
   const navigate = useNavigate();
 
@@ -46,11 +50,8 @@ const A = () => {
   };
 
   const handleLogout = () => {
-    // Clear any stored user data (e.g., tokens)
     localStorage.removeItem('userToken');
     localStorage.removeItem('userData');
-
-    // Navigate to the login page
     navigate('/');
   };
 
@@ -67,7 +68,7 @@ const A = () => {
     try {
       const res = await axios.get('http://localhost:3001/api/posts/reported');
       setReportedPosts(res.data);
-      fetchPosts(); // Refresh all posts
+      fetchPosts();
     } catch (err) {
       toast.error('Error fetching reported posts');
     }
@@ -90,10 +91,10 @@ const A = () => {
           toast.error('Post not found');
           return;
         }
-        await fetchDeletedPosts(); // Refresh deleted posts
-        await fetchReportedPosts(); // Refresh reported posts
-        await fetchPosts(); // Refresh all posts
-        setActiveTab('restored'); // Ensure the "Restored" tab is active
+        await fetchDeletedPosts();
+        await fetchReportedPosts();
+        await fetchPosts();
+        setActiveTab('restored');
         toast.success('Post restored successfully');
       } catch (err) {
         toast.error('Error restoring post');
@@ -105,10 +106,10 @@ const A = () => {
     if (window.confirm('Are you sure you want to soft delete this post?')) {
       try {
         await axios.patch(`http://localhost:3001/api/posts/${postId}/softdelete`);
-        await fetchDeletedPosts(); // Refresh deleted posts
-        await fetchReportedPosts(); // Refresh reported posts
-        await fetchPosts(); // Refresh all posts
-        setActiveTab('reported'); // Ensure the "Reported" tab is active
+        await fetchDeletedPosts();
+        await fetchReportedPosts();
+        await fetchPosts();
+        setActiveTab('reported');
         toast.info('Post deleted');
       } catch (err) {
         toast.error('Error soft deleting post');
@@ -134,13 +135,36 @@ const A = () => {
     }));
   };
 
+  const handleMediaChange = (postId, file) => {
+    setNewMedia(prev => ({ ...prev, [postId]: file }));
+    setRemoveMedia(prev => ({ ...prev, [postId]: false }));
+  };
+
+  const handleRemoveMedia = (postId) => {
+    setRemoveMedia(prev => ({ ...prev, [postId]: true }));
+    setNewMedia(prev => ({ ...prev, [postId]: null }));
+  };
+
   const handleEditSave = async (postId) => {
     try {
       const updatedData = editedPostData[postId];
-      const res = await axios.put(`http://localhost:3001/api/posts/${postId}`, updatedData);
+      let formData = new FormData();
+      formData.append('title', updatedData.title);
+      formData.append('description', updatedData.description);
+      if (newMedia[postId]) {
+        formData.append('media', newMedia[postId]);
+      }
+      if (removeMedia[postId]) {
+        formData.append('removeMedia', 'true');
+      }
+      const res = await axios.put(`http://localhost:3001/api/posts/${postId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       setPosts(posts.map(post => post._id === postId ? res.data : post));
       setReportedPosts(reportedPosts.map(post => post._id === postId ? res.data : post));
       setEditMode(prev => ({ ...prev, [postId]: false }));
+      setNewMedia(prev => ({ ...prev, [postId]: null }));
+      setRemoveMedia(prev => ({ ...prev, [postId]: false }));
       toast.success('Post updated successfully');
     } catch (err) {
       toast.error('Error updating post');
@@ -161,7 +185,6 @@ const A = () => {
     .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-  // Updated renderPostCard to optionally show restore button
   const renderPostCard = (post, isReported = false, isRestored = false) => (
     <div key={post._id} className={`p-6 rounded-lg shadow-md ${isReported ? 'bg-red-50 border border-red-300' : isRestored ? 'bg-gray-200 dark:bg-gray-800' : 'bg-white dark:bg-gray-800'}`}>
       <div className="mb-3">
@@ -177,12 +200,53 @@ const A = () => {
             onChange={(e) => handleEditChange(post._id, 'title', e.target.value)}
             className="w-full p-2 mb-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
           />
-          <textarea
+          <ReactQuill
             value={editedPostData[post._id]?.description || ''}
-            onChange={(e) => handleEditChange(post._id, 'description', e.target.value)}
-            className="w-full p-2 mb-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-            rows={3}
+            onChange={(value) => handleEditChange(post._id, 'description', value)}
+            className="mb-2 bg-white dark:bg-gray-700"
           />
+          {(post.media && !removeMedia[post._id] && !newMedia[post._id]) && (
+            <div className="relative mb-2">
+              <img
+                src={`http://localhost:3001/${post.media}`}
+                alt="Post"
+                className="w-full h-48 object-cover rounded-lg"
+              />
+              <button
+                type="button"
+                onClick={() => handleRemoveMedia(post._id)}
+                className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700"
+                title="Remove image"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          )}
+          {newMedia[post._id] && (
+            <div className="relative mb-2">
+              <img
+                src={URL.createObjectURL(newMedia[post._id])}
+                alt="New Post"
+                className="w-full h-48 object-cover rounded-lg"
+              />
+              <button
+                type="button"
+                onClick={() => handleMediaChange(post._id, null)}
+                className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700"
+                title="Remove new image"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          )}
+          {(removeMedia[post._id] || !post.media || newMedia[post._id]) && (
+            <input
+              type="file"
+              accept="image/*"
+              onChange={e => handleMediaChange(post._id, e.target.files[0])}
+              className="mb-2"
+            />
+          )}
         </>
       ) : (
         <>
@@ -194,15 +258,21 @@ const A = () => {
                 : `${post.description.slice(0, 200)}...`
               : post.description
           }}></p>
+          {post.media && !post.isDeleted && (
+            <img
+              src={`http://localhost:3001/${post.media}`}
+              alt="Post"
+              className="w-full h-48 object-cover rounded-lg mb-4"
+            />
+          )}
+          {post.media && isRestored && (
+            <img
+              src={`http://localhost:3001/${post.media}`}
+              alt="Restored Post"
+              className="w-full h-48 object-cover rounded-lg mb-4"
+            />
+          )}
         </>
-      )}
-
-      {post.media && /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(post.media) && (
-        <img
-          src={`http://localhost:3001/${post.media}`}
-          alt="Post"
-          className="w-full h-48 object-cover rounded-lg mb-4"
-        />
       )}
 
       <div className="flex gap-2 mt-4">
@@ -245,13 +315,11 @@ const A = () => {
     </div>
   );
 
-  // Sort reported posts by reportedAt in descending order
   const sortedReportedPosts = reportedPosts
     .filter(post => !post.isDeleted)
     .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => new Date(b.reportedAt) - new Date(a.reportedAt));
 
-  // Sort deleted posts by createdAt in descending order
   const sortedDeletedPosts = deletedPosts
     .filter(post => post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
