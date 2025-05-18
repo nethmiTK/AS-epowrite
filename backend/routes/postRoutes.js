@@ -110,15 +110,16 @@ router.post('/:postId/comment', async (req, res) => {
 // Full update
 router.put('/:postId', upload.single('media'), async (req, res) => {
   const { title, description, author } = req.body;
-  let media = null;
+  let updateFields = { title, description, author };
+
   if (req.file) {
-    media = req.file.path;
+    updateFields.media = req.file.path;
   }
 
   try {
     const post = await Post.findByIdAndUpdate(
       req.params.postId,
-      { title, description, author, media },
+      updateFields,
       { new: true }
     );
     if (!post) return res.status(404).json({ message: 'Post not found' });
