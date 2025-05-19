@@ -17,7 +17,6 @@ const A = () => {
   const [editedPostData, setEditedPostData] = useState({});
   const [showMoreMap, setShowMoreMap] = useState({});
   const [activeTab, setActiveTab] = useState('all');
-  const [darkMode, setDarkMode] = useState(false);
   const [newMedia, setNewMedia] = useState({});
   const [removeMedia, setRemoveMedia] = useState({});
   const [showImageModal, setShowImageModal] = useState(false);
@@ -30,26 +29,6 @@ const A = () => {
     fetchReportedPosts();
     fetchDeletedPosts();
   }, []);
-
-  useEffect(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    if (savedMode) {
-      setDarkMode(JSON.parse(savedMode));
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
-  const toggleDarkMode = () => {
-    setDarkMode((prevMode) => !prevMode);
-  };
 
   const handleLogout = () => {
     localStorage.removeItem('userToken');
@@ -198,12 +177,12 @@ const A = () => {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const renderPostCard = (post, isReported = false, isRestored = false) => (
-    <div key={post._id} className={`p-6 rounded-lg shadow-md ${isReported ? 'bg-red-50 border border-red-300' : isRestored ? 'bg-gray-200 dark:bg-gray-800' : 'bg-white dark:bg-gray-800'}`}>
+    <div key={post._id} className={`p-6 rounded-lg shadow-md ${isReported ? 'bg-red-50 border border-red-300' : isRestored ? 'bg-gray-200' : 'bg-white'}`}>
       <div className="mb-3">
-        <p className="font-semibold text-lg text-gray-800 dark:text-gray-200">
+        <p className="font-semibold text-lg text-gray-800">
           {post.authorName || post.author || 'Unknown'}
         </p>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{formatDate(post.createdAt)}</p>
+        <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p>
       </div>
 
       {editMode[post._id] ? (
@@ -212,12 +191,12 @@ const A = () => {
             type="text"
             value={editedPostData[post._id]?.title || ''}
             onChange={(e) => handleEditChange(post._id, 'title', e.target.value)}
-            className="w-full p-2 mb-2 border border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+            className="w-full p-2 mb-2 border border-gray-300 rounded bg-gray-100"
           />
           <ReactQuill
             value={editedPostData[post._id]?.description || ''}
             onChange={(value) => handleEditChange(post._id, 'description', value)}
-            className="mb-2 bg-white dark:bg-gray-700"
+            className="mb-2 bg-white"
           />
           {(post.media && !removeMedia[post._id] && !newMedia[post._id]) && (
             <div className="relative mb-2">
@@ -264,8 +243,8 @@ const A = () => {
         </>
       ) : (
         <>
-          <h2 className="text-2xl font-semibold mb-2 text-gray-800 dark:text-gray-200">{post.title}</h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-2" dangerouslySetInnerHTML={{
+          <h2 className="text-2xl font-semibold mb-2 text-gray-800">{post.title}</h2>
+          <p className="text-gray-700 mb-2" dangerouslySetInnerHTML={{
             __html: post.description.length > 200
               ? showMoreMap[post._id]
                 ? post.description
@@ -319,13 +298,13 @@ const A = () => {
       </div>
 
       {isReported && post.reports?.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 p-3 rounded border mt-4">
-          <h4 className="text-md font-semibold text-red-700 dark:text-red-400 mb-2">Reports:</h4>
+        <div className="bg-white p-3 rounded border mt-4">
+          <h4 className="text-md font-semibold text-red-700 mb-2">Reports:</h4>
           {post.reports.map((report, index) => (
             <div key={index} className="border-t py-2">
-              <p className="text-sm dark:text-gray-300"><strong>Reporter:</strong> {report.reporterName}</p>
-              <p className="text-sm dark:text-gray-300"><strong>Reason:</strong> {report.reason}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{formatDate(report.reportedAt)}</p>
+              <p className="text-sm"><strong>Reporter:</strong> {report.reporterName}</p>
+              <p className="text-sm"><strong>Reason:</strong> {report.reason}</p>
+              <p className="text-xs text-gray-500">{formatDate(report.reportedAt)}</p>
             </div>
           ))}
         </div>
@@ -343,7 +322,7 @@ const A = () => {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'} px-4 py-10 pt-32`}>
+    <div className="min-h-screen bg-[#f8fafc] text-[#1e293b] px-4 py-10 pt-32">
       <ToastContainer />
       {showImageModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 overflow-auto" onClick={closeImageModal}>
@@ -361,7 +340,7 @@ const A = () => {
       )}
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-bold text-center text-blue-700 dark:text-blue-300">Welcome, Admin</h1>
+          <h1 className="text-4xl font-bold text-center text-blue-700">Welcome, Admin</h1>
           <div className="flex gap-4">
             <button
               onClick={handleLogout}
@@ -373,13 +352,13 @@ const A = () => {
         </div>
 
         <div className="flex flex-wrap justify-center gap-4 mb-6">
-          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'all' ? 'bg-blue-600 text-white' : 'bg-white border dark:bg-gray-800 dark:border-gray-600'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('all')}>
+          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'all' ? 'bg-blue-600 text-white' : 'bg-white border'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('all')}>
             <FileText size={18} /> All Posts
           </button>
-          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'reported' ? 'bg-yellow-500 text-white' : 'bg-white border dark:bg-gray-800 dark:border-gray-600'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('reported')}>
+          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'reported' ? 'bg-yellow-500 text-white' : 'bg-white border'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('reported')}>
             <Flag size={18} /> Reported Posts
           </button>
-          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'restored' ? 'bg-green-500 text-white' : 'bg-white border dark:bg-gray-800 dark:border-gray-600'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('restored')}>
+          <button className={`flex items-center gap-2 px-4 py-2 rounded ${activeTab === 'restored' ? 'bg-green-500 text-white' : 'bg-white border'} transition-all duration-300 hover:shadow-md`} onClick={() => setActiveTab('restored')}>
             <RefreshCw size={18} /> Restored Posts
           </button>
         </div>
@@ -391,7 +370,7 @@ const A = () => {
               placeholder="Search posts by title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 bg-blue-50 dark:bg-gray-700"
+              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50"
             />
             <div className="space-y-6">
               {filteredPosts.map((post) => renderPostCard(post))}
@@ -406,7 +385,7 @@ const A = () => {
               placeholder="Search reported posts by title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 bg-yellow-50 dark:bg-gray-700"
+              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-yellow-50"
             />
             <div className="space-y-6">
               {sortedReportedPosts.map((post) => renderPostCard(post, true))}
@@ -421,7 +400,7 @@ const A = () => {
               placeholder="Search restored posts by title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 bg-green-50 dark:bg-gray-700"
+              className="w-full p-3 mb-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-green-50"
             />
             <div className="space-y-6">
               {sortedDeletedPosts.map((post) => renderPostCard(post, false, true))}

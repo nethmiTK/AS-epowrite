@@ -16,7 +16,8 @@ const validationSchema = Yup.object({
   username: Yup.string().required('Username is required'),
   email: Yup.string()
     .email('Invalid email format')
-    .test('contains-dot', 'Email must contain a dot (.com)', (value) => value && value.includes('.com'))
+    .test('contains-dot', 'Email must contain a dot (.)', (value) =>     (value) => value && (value.split('.').length - 1) === 1
+)
     .required('Email is required'),
   password: Yup.string()
     .required('Password is required')
